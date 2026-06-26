@@ -1,0 +1,214 @@
+@import '../../../../vendor/filament/filament/resources/css/theme.css';
+
+@config 'tailwind.config.js';
+
+/*
+| Asas Design Tokens
+| Single source of truth for the admin theme. Every custom component must
+| reference these variables — never hardcode hex values inside components.
+| See docs/DESIGN_SYSTEM.md.
+*/
+
+:root {
+    /* Primary — Teal */
+    --asas-primary-50: #ECFBF5;
+    --asas-primary-100: #CFF4E5;
+    --asas-primary-200: #A2E9CD;
+    --asas-primary-300: #6BD8B0;
+    --asas-primary-400: #36C291;
+    --asas-primary-500: #15A878;
+    --asas-primary-600: #0E8A63;
+    --asas-primary-700: #0C6E50;
+    --asas-primary-800: #0C5740;
+    --asas-primary-900: #093F2F;
+
+    /* Info — Blue */
+    --asas-info-50: #EAF3FB;
+    --asas-info-500: #2D7FC4;
+    --asas-info-700: #184B7E;
+
+    /* Semantic */
+    --asas-success-50: #E9F7EE;
+    --asas-success-500: #1F9D57;
+    --asas-success-700: #0F6E3A;
+    --asas-warning-50: #FEF5E6;
+    --asas-warning-500: #E2A00F;
+    --asas-warning-700: #8A5E00;
+    --asas-danger-50: #FCECEA;
+    --asas-danger-500: #E04B43;
+    --asas-danger-700: #8F231D;
+
+    /* Neutral */
+    --asas-gray-50: #F5F7F7;
+    --asas-gray-100: #EDF0F0;
+    --asas-gray-200: #E1E5E5;
+    --asas-gray-300: #CCD2D2;
+    --asas-gray-400: #9BA3A3;
+    --asas-gray-500: #6C7474;
+    --asas-gray-600: #4C5252;
+    --asas-gray-700: #363B3B;
+    --asas-gray-800: #232727;
+    --asas-gray-900: #141717;
+
+    /* Surfaces (light) */
+    --asas-app-bg: #F4F6F6;
+    --asas-card-bg: #FFFFFF;
+    --asas-border: #E1E5E5;
+    --asas-border-strong: #CCD2D2;
+    --asas-text: #141717;
+    --asas-text-secondary: #4C5252;
+    --asas-text-muted: #9BA3A3;
+
+    /* Layout */
+    --asas-radius-card: 12px;
+    --asas-space-card: 20px;
+    --asas-space-gap: 16px;
+    --asas-shadow-card: 0 1px 2px rgba(16, 24, 24, 0.06), 0 1px 3px rgba(16, 24, 24, 0.04);
+    --asas-shadow-hover: 0 4px 12px rgba(16, 24, 24, 0.08);
+
+    /* Chart palette (fixed, token-bound) */
+    --asas-chart-teal: #15A878;
+    --asas-chart-blue: #2D7FC4;
+    --asas-chart-success: #1F9D57;
+    --asas-chart-warning: #E2A00F;
+    --asas-chart-danger: #E04B43;
+    --asas-chart-gray: #9BA3A3;
+
+    /* Activity timeline event tokens */
+    --asas-activity-created: var(--asas-success-500);
+    --asas-activity-updated: var(--asas-info-500);
+    --asas-activity-deleted: var(--asas-danger-500);
+}
+
+.dark {
+    /* Surfaces (dark) — tokens only, components inherit automatically */
+    --asas-app-bg: #0E1414;
+    --asas-card-bg: #161D1D;
+    --asas-border: #283030;
+    --asas-border-strong: #344040;
+    --asas-text: #ECEFEF;
+    --asas-text-secondary: #AEB6B6;
+    --asas-text-muted: #8A9292;
+    --asas-shadow-card: 0 1px 2px rgba(0, 0, 0, 0.4);
+    --asas-shadow-hover: 0 4px 14px rgba(0, 0, 0, 0.5);
+}
+
+/* Sidebar foundation: smooth collapse transition (widths set in panel config) */
+.fi-sidebar,
+.fi-sidebar-nav {
+    transition: width 0.25s ease, transform 0.25s ease;
+}
+
+/*
+| ============================================================
+|  Asas Design System — Components (Step 3.2)
+|  All colors come from --asas-* tokens. No hardcoded hex here.
+| ============================================================
+*/
+
+.asas-card {
+    background: var(--asas-card-bg);
+    border: 1px solid var(--asas-border);
+    border-radius: var(--asas-radius-card);
+    padding: var(--asas-space-card);
+    box-shadow: var(--asas-shadow-card);
+}
+
+.asas-card__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
+}
+.asas-card__title { font-size: 16px; font-weight: 500; color: var(--asas-text); }
+.asas-card__hint { font-size: 12px; color: var(--asas-text-muted); }
+
+/* Page header */
+.asas-page-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+.asas-page-header__title { font-size: 24px; font-weight: 700; line-height: 1.3; color: var(--asas-text); margin: 0; }
+.asas-page-header__subtitle { font-size: 14px; color: var(--asas-text-secondary); margin-top: 4px; }
+.asas-page-header__actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* Section header */
+.asas-section-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 24px 0 12px;
+}
+.asas-section-header__title { font-size: 20px; font-weight: 700; color: var(--asas-text); margin: 0; }
+.asas-section-header__action { font-size: 13px; color: var(--asas-primary-600); }
+
+/* Breadcrumb */
+.asas-breadcrumb { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--asas-text-muted); }
+.asas-breadcrumb__item { color: var(--asas-text-muted); text-decoration: none; }
+.asas-breadcrumb__item--current { color: var(--asas-text); font-weight: 500; }
+.asas-breadcrumb__sep { color: var(--asas-text-muted); font-size: 12px; display: inline-flex; }
+.asas-breadcrumb__sep svg { width: 12px; height: 12px; }
+
+/* Stats grid */
+.asas-stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--asas-space-gap); }
+.asas-stats-grid--3 { grid-template-columns: repeat(3, 1fr); }
+.asas-stats-grid--4 { grid-template-columns: repeat(4, 1fr); }
+@media (max-width: 1024px) { .asas-stats-grid--3, .asas-stats-grid--4 { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 640px) { .asas-stats-grid, .asas-stats-grid--3, .asas-stats-grid--4 { grid-template-columns: 1fr; } }
+
+/* KPI card */
+.asas-kpi { display: flex; flex-direction: column; gap: 6px; min-height: 118px; }
+.asas-kpi__head { display: flex; align-items: flex-start; justify-content: space-between; }
+.asas-kpi__chip { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; background: var(--chip-bg); color: var(--chip-fg); flex-shrink: 0; }
+.asas-kpi__chip svg { width: 20px; height: 20px; }
+.asas-kpi__label { font-size: 13px; color: var(--asas-text-muted); }
+.asas-kpi__value { font-size: 28px; font-weight: 700; line-height: 1.15; color: var(--asas-text); }
+.asas-kpi__trend { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--trend-fg); }
+.asas-kpi__trend svg { width: 14px; height: 14px; }
+.asas-kpi__spark { margin-top: 8px; height: 36px; }
+
+/* Status badge */
+.asas-badge { display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 500; line-height: 1; white-space: nowrap; }
+.asas-badge__dot { width: 6px; height: 6px; border-radius: 50%; }
+
+/* Empty state */
+.asas-empty { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 32px 20px; gap: 8px; }
+.asas-empty__icon { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; background: var(--asas-gray-100); color: var(--asas-text-muted); margin-bottom: 4px; }
+.asas-empty__icon svg { width: 24px; height: 24px; }
+.asas-empty__title { font-size: 16px; font-weight: 500; color: var(--asas-text); }
+.asas-empty__desc { font-size: 13px; color: var(--asas-text-muted); max-width: 340px; line-height: 1.6; }
+.asas-empty__cta { margin-top: 8px; }
+
+/* Skeleton loaders */
+@keyframes asas-shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+.asas-skeleton__line,
+.asas-skeleton__block {
+    background: linear-gradient(90deg, var(--asas-gray-100) 25%, var(--asas-gray-200) 37%, var(--asas-gray-100) 63%);
+    background-size: 200% 100%;
+    animation: asas-shimmer 1.4s ease infinite;
+}
+.asas-skeleton__line { height: 12px; border-radius: 6px; }
+.asas-skeleton__block { border-radius: 8px; }
+.dark .asas-skeleton__line,
+.dark .asas-skeleton__block {
+    background: linear-gradient(90deg, #1d2525 25%, #283030 37%, #1d2525 63%);
+    background-size: 200% 100%;
+}
+
+/* Timeline */
+.asas-timeline { display: flex; flex-direction: column; }
+.asas-timeline-item { display: flex; gap: 12px; padding-bottom: 18px; }
+.asas-timeline-item__rail { display: flex; flex-direction: column; align-items: center; }
+.asas-timeline-item__dot { width: 12px; height: 12px; border-radius: 50%; background: var(--dot); margin-top: 3px; flex-shrink: 0; }
+.asas-timeline-item__line { flex: 1; width: 2px; background: var(--asas-border); margin-top: 2px; }
+.asas-timeline-item:last-child .asas-timeline-item__line { display: none; }
+.asas-timeline-item__title { font-size: 14px; color: var(--asas-text); }
+.asas-timeline-item__time { font-size: 12px; color: var(--asas-text-muted); margin-top: 2px; }
+
+/* Chart card body sizing */
+.asas-chart-card__body { width: 100%; }
