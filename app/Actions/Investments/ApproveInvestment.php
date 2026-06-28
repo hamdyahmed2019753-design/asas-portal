@@ -2,9 +2,14 @@
 
 namespace App\Actions\Investments;
 
+use App\Actions\Admin\NotifyAdmins;
+use App\Enums\AdminNotificationCategory;
+use App\Enums\AdminNotificationPriority;
 use App\Enums\InvestmentStatus;
 use App\Exceptions\InvestmentAlreadyProcessedException;
+use App\Filament\Resources\InvestmentResource;
 use App\Models\Investment;
+use App\Notifications\Admin\AdminNotification;
 use App\Notifications\InvestmentApprovedNotification;
 use App\Services\PayoutScheduleGenerator;
 use Illuminate\Support\Facades\DB;
@@ -52,6 +57,19 @@ class ApproveInvestment
 
             $investment->loadMissing('contract');
             $user->notify(new InvestmentApprovedNotification($investment));
+
+            $contractTitle = $investment->contract?->title ?? '—';
+
+            NotifyAdmins::send(new AdminNotification(
+                title: 'اعتماد مشاركة استثمارية',
+                body: "تم اعتماد مشاركة «{$user->name}» في عقد «{$contractTitle}».",
+                category: AdminNotificationCategory::Investment,
+                priority: AdminNotificationPriority::Medium,
+                actor: $user,
+                target: $investment,
+                url: InvestmentResource::getUrl('view', ['record' => $investment]),
+                actionLabel: 'فتح المشاركة',
+            ));
 
             return $investment;
         });

@@ -2,9 +2,14 @@
 
 namespace App\Services\Portal;
 
+use App\Actions\Admin\NotifyAdmins;
+use App\Enums\AdminNotificationCategory;
+use App\Enums\AdminNotificationPriority;
 use App\Enums\DocumentCategory;
 use App\Enums\KycState;
+use App\Filament\Resources\InvestorResource;
 use App\Models\User;
+use App\Notifications\Admin\AdminNotification;
 use App\Notifications\KycApprovedNotification;
 use App\Notifications\KycRejectedNotification;
 use App\Notifications\KycSubmittedNotification;
@@ -135,12 +140,34 @@ class KycService
     {
         $this->transition($user, KycState::Approved, reason: null);
         $user->notify(new KycApprovedNotification);
+
+        NotifyAdmins::send(new AdminNotification(
+            title: 'اعتماد تحقق المستثمر',
+            body: "تم اعتماد تحقيق هوية «{$user->name}».",
+            category: AdminNotificationCategory::Kyc,
+            priority: AdminNotificationPriority::Medium,
+            actor: $user,
+            target: $user,
+            url: InvestorResource::getUrl('view', ['record' => $user]),
+            actionLabel: 'فتح المستثمر',
+        ));
     }
 
     public function reject(User $user, string $reason): void
     {
         $this->transition($user, KycState::Rejected, reason: $reason);
         $user->notify(new KycRejectedNotification($reason));
+
+        NotifyAdmins::send(new AdminNotification(
+            title: 'رفض تحقق المستثمر',
+            body: "تم رفض تحقق «{$user->name}».",
+            category: AdminNotificationCategory::Kyc,
+            priority: AdminNotificationPriority::High,
+            actor: $user,
+            target: $user,
+            url: InvestorResource::getUrl('view', ['record' => $user]),
+            actionLabel: 'فتح المستثمر',
+        ));
     }
 
     /**
@@ -181,6 +208,17 @@ class KycService
         ])->save();
 
         $user->notify(new KycSubmittedNotification);
+
+        NotifyAdmins::send(new AdminNotification(
+            title: 'إعادة رفع مستندات تحقق',
+            body: "أعاد «{$user->name}» رفع مستندات التحقق في {$user->kyc_submitted_at?->format('Y-m-d H:i')} للمراجعة.",
+            category: AdminNotificationCategory::Kyc,
+            priority: AdminNotificationPriority::High,
+            actor: $user,
+            target: $user,
+            url: InvestorResource::getUrl('view', ['record' => $user]),
+            actionLabel: 'مراجعة التحقق',
+        ));
     }
 
     private function transition(User $user, KycState $state, bool $reviewedAt = true, ?string $reason = null): void

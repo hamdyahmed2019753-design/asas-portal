@@ -2,11 +2,16 @@
 
 namespace App\Services\Portal;
 
+use App\Actions\Admin\NotifyAdmins;
+use App\Enums\AdminNotificationCategory;
+use App\Enums\AdminNotificationPriority;
 use App\Enums\ContractInterestStatus;
 use App\Exceptions\DuplicateInterestException;
+use App\Filament\Resources\InvestorResource;
 use App\Models\Contract;
 use App\Models\ContractInterest;
 use App\Models\User;
+use App\Notifications\Admin\AdminNotification;
 use App\Notifications\ContractInterestNotification;
 
 /**
@@ -34,6 +39,17 @@ class ContractInterestService
         ]);
 
         $user->notify(new ContractInterestNotification('submitted', $contract->title));
+
+        NotifyAdmins::send(new AdminNotification(
+            title: 'اهتمام جديد بعقد',
+            body: "عبّر «{$user->name}» عن اهتمامه بعقد «{$contract->title}» في ".now()->format('Y-m-d H:i').'.',
+            category: AdminNotificationCategory::Interest,
+            priority: AdminNotificationPriority::Medium,
+            actor: $user,
+            target: $interest,
+            url: InvestorResource::getUrl('view', ['record' => $user]),
+            actionLabel: 'فتح المستثمر',
+        ));
 
         return $interest;
     }

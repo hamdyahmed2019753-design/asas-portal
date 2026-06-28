@@ -2,8 +2,13 @@
 
 namespace App\Console\Commands;
 
+use App\Actions\Admin\NotifyAdmins;
+use App\Enums\AdminNotificationCategory;
+use App\Enums\AdminNotificationPriority;
 use App\Enums\PayoutStatus;
+use App\Filament\Resources\PayoutResource;
 use App\Models\Payout;
+use App\Notifications\Admin\AdminNotification;
 use App\Notifications\PayoutDueNotification;
 use Illuminate\Console\Command;
 
@@ -30,6 +35,20 @@ class RefreshPayouts extends Command
         foreach ($payouts as $payout) {
             $payout->forceFill(['status' => PayoutStatus::Due->value])->save();
             $payout->investment?->user?->notify(new PayoutDueNotification($payout));
+
+            $investorName = $payout->investment?->user?->name ?? '—';
+            $dueDate = $payout->due_date?->format('Y-m-d');
+
+            NotifyAdmins::send(new AdminNotification(
+                title: 'توزيعة مستحقة جديدة',
+                body: "أصبحت توزيعة المستثمر «{$investorName}» مستحقة ({$dueDate}).",
+                category: AdminNotificationCategory::Payout,
+                priority: AdminNotificationPriority::High,
+                actor: $payout->investment?->user,
+                target: $payout,
+                url: PayoutResource::getUrl('view', ['record' => $payout]),
+                actionLabel: 'فتح التوزيعة',
+            ));
         }
 
         $count = $payouts->count();

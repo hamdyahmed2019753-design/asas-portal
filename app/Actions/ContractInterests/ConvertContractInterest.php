@@ -2,10 +2,15 @@
 
 namespace App\Actions\ContractInterests;
 
+use App\Actions\Admin\NotifyAdmins;
+use App\Enums\AdminNotificationCategory;
+use App\Enums\AdminNotificationPriority;
 use App\Enums\ContractInterestStatus;
 use App\Enums\InvestmentStatus;
+use App\Filament\Resources\InvestmentResource;
 use App\Models\ContractInterest;
 use App\Models\Investment;
+use App\Notifications\Admin\AdminNotification;
 use App\Notifications\ContractInterestNotification;
 use Illuminate\Support\Facades\DB;
 
@@ -36,6 +41,17 @@ class ConvertContractInterest
             ])->save();
 
             $interest->user->notify(new ContractInterestNotification('converted', $interest->contract->title));
+
+            NotifyAdmins::send(new AdminNotification(
+                title: 'تحويل اهتمام إلى مشاركة',
+                body: "تم تحويل اهتمام «{$interest->user->name}» بعقد «{$interest->contract->title}» إلى مشاركة.",
+                category: AdminNotificationCategory::Interest,
+                priority: AdminNotificationPriority::Medium,
+                actor: $interest->user,
+                target: $investment,
+                url: InvestmentResource::getUrl('view', ['record' => $investment]),
+                actionLabel: 'فتح المشاركة',
+            ));
 
             return $investment;
         });

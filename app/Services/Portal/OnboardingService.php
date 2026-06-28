@@ -2,9 +2,14 @@
 
 namespace App\Services\Portal;
 
+use App\Actions\Admin\NotifyAdmins;
+use App\Enums\AdminNotificationCategory;
+use App\Enums\AdminNotificationPriority;
 use App\Enums\DocumentCategory;
 use App\Enums\KycState;
+use App\Filament\Resources\InvestorResource;
 use App\Models\User;
+use App\Notifications\Admin\AdminNotification;
 use App\Notifications\KycSubmittedNotification;
 use Illuminate\Http\UploadedFile;
 
@@ -143,6 +148,28 @@ class OnboardingService
         ])->save();
 
         $user->notify(new KycSubmittedNotification);
+
+        NotifyAdmins::send(new AdminNotification(
+            title: 'إتمام تأهيل مستثمر',
+            body: "أكمل المستثمر «{$user->name}» خطوات التأهيل.",
+            category: AdminNotificationCategory::User,
+            priority: AdminNotificationPriority::Medium,
+            actor: $user,
+            target: $user,
+            url: InvestorResource::getUrl('view', ['record' => $user]),
+            actionLabel: 'فتح المستثمر',
+        ));
+
+        NotifyAdmins::send(new AdminNotification(
+            title: 'مستندات تحقق جديدة بانتظار المراجعة',
+            body: "رفع «{$user->name}» مستندات التحقق في {$user->kyc_submitted_at?->format('Y-m-d H:i')}.",
+            category: AdminNotificationCategory::Kyc,
+            priority: AdminNotificationPriority::High,
+            actor: $user,
+            target: $user,
+            url: InvestorResource::getUrl('view', ['record' => $user]),
+            actionLabel: 'مراجعة التحقق',
+        ));
     }
 
     private function profileComplete(User $user): bool

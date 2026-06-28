@@ -49,3 +49,241 @@ OUTPUT STYLE: concise
 - 1-sentence explanations max, then code/action
 - No repeating what the user said
 <!-- /lean-ctx-rules -->
+
+# Project-Specific Rules
+
+These rules apply only to the ASAS Investor Portal project.
+
+---
+
+## Project Context
+
+The project has already been analyzed and indexed.
+
+Reuse the existing indexed project context.
+
+Do not rediscover the architecture.
+
+Do not reread the repository.
+
+Assume completed features are correct unless the current task explicitly modifies them.
+
+---
+
+## lean-ctx Usage
+
+Always use lean-ctx as the primary source of project knowledge.
+
+Before editing any feature:
+
+1. Call `ctx_compose` first.
+2. Open only the files returned by `ctx_compose`.
+3. Read signatures before reading full files.
+4. Prefer semantic search over manual searching.
+5. Reuse previous context whenever possible.
+
+Never manually scan the repository.
+
+Never browse folders for orientation.
+
+Never read unrelated files.
+
+---
+
+## File Reading
+
+Prefer:
+
+* ctx_compose
+* ctx_symbol
+* ctx_semantic_search
+* ctx_read(signatures)
+
+Use `ctx_read(full)` only when actually modifying the file.
+
+Never read entire files for orientation.
+
+Never open more files than necessary.
+
+Batch independent reads whenever possible.
+
+---
+
+## Existing Architecture
+
+Always preserve the existing architecture.
+
+Reuse:
+
+* Controllers
+* Form Requests
+* Services
+* Actions
+* Policies
+* Notifications
+* Enums
+* Settings
+* Widgets
+* Resources
+* Components
+
+Never redesign completed modules.
+
+Never duplicate existing logic.
+
+Prefer extending existing implementations.
+
+Create new classes only when absolutely necessary.
+
+---
+
+## UI
+
+Investor Portal
+
+* IBM Plex Sans Arabic
+* RTL
+* Indigo theme (`ip-*`)
+* Dark mode
+
+Admin Panel
+
+* Filament
+* Tajawal
+* Teal theme (`asas-*`)
+
+Never mix both design systems.
+
+Always reuse existing Blade components.
+
+Always reuse CSS tokens.
+
+---
+
+## Security
+
+Always preserve:
+
+* Policies
+* Authorization
+* Relationship scoped queries
+* Signed URLs
+* Existing Roles
+* Existing Permissions
+
+Never bypass authorization.
+
+Never expose private files.
+
+---
+
+## Performance
+
+Avoid N+1 queries.
+
+Reuse eager loading.
+
+Reuse cached values.
+
+Reuse existing queries.
+
+Avoid unnecessary database queries.
+
+Prefer grouped SQL queries.
+
+Keep business logic efficient.
+
+---
+
+## Notifications
+
+Reuse:
+
+* Laravel Notifications
+* Existing Notification classes
+* Existing Notification Center
+* Horizon
+* Queue system
+
+Never create a second notification architecture.
+
+---
+
+## Settings
+
+All configurable values must use the existing Settings service.
+
+Never hardcode configurable values.
+
+Never modify `.env` unless explicitly requested.
+
+---
+
+## Token Optimization
+
+Minimize token usage.
+
+Reuse indexed context.
+
+Never re-analyze completed features.
+
+Never generate unnecessary explanations.
+
+Never produce long reports.
+
+Modify only the files required for the current task.
+
+Keep responses concise.
+
+---
+
+## Planning Mode
+
+When the user requests a plan:
+
+* Analyze only the required files.
+* Explain the implementation briefly.
+* List affected files.
+* Wait for explicit approval.
+* Do not edit files before approval.
+
+---
+
+## Validation
+
+Default validation:
+
+* Build Verification only.
+
+Do NOT run:
+
+* PHPUnit
+* Browser Testing
+* QA
+* Security Audit
+* Performance Audit
+
+Unless explicitly requested.
+
+Do not modify test files.
+
+Do not create tests unless explicitly requested.
+
+---
+
+## Response Format
+
+Keep responses short.
+
+Return only:
+
+* Files Added (if any)
+* Files Updated
+* Build Status
+* Notes (maximum two short lines)
+
+Stop immediately after completing the requested feature.
+
+Never continue to the next feature automatically.
+
+Never implement features outside the requested scope.

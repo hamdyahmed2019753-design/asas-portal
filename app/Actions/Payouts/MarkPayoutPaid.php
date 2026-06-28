@@ -2,11 +2,16 @@
 
 namespace App\Actions\Payouts;
 
+use App\Actions\Admin\NotifyAdmins;
+use App\Enums\AdminNotificationCategory;
+use App\Enums\AdminNotificationPriority;
 use App\Enums\PayoutStatus;
 use App\Enums\PayoutType;
 use App\Exceptions\PayoutAlreadyPaidException;
 use App\Exceptions\PayoutAmountMissingException;
+use App\Filament\Resources\PayoutResource;
 use App\Models\Payout;
+use App\Notifications\Admin\AdminNotification;
 use App\Notifications\PayoutPaidNotification;
 
 /**
@@ -35,6 +40,19 @@ class MarkPayoutPaid
 
         $payout->loadMissing('investment.user');
         $payout->investment?->user?->notify(new PayoutPaidNotification($payout));
+
+        $investorName = $payout->investment?->user?->name ?? '—';
+
+        NotifyAdmins::send(new AdminNotification(
+            title: 'صرف توزيعة',
+            body: "تم صرف توزيعة المستثمر «{$investorName}».",
+            category: AdminNotificationCategory::Payout,
+            priority: AdminNotificationPriority::Medium,
+            actor: $payout->investment?->user,
+            target: $payout,
+            url: PayoutResource::getUrl('view', ['record' => $payout]),
+            actionLabel: 'فتح التوزيعة',
+        ));
 
         return $payout;
     }
