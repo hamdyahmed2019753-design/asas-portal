@@ -1,7 +1,11 @@
 @php
-    $name = $record->data['actor_name'] ?? null;
-    $initial = $name ? mb_substr($name, 0, 1) : null;
-    $createdAt = $record->created_at;
+    // Filament injects the row's record as a closure ($getRecord()), not as
+    // $record — see ViewComponent::render() / extractPublicMethods(). Calling
+    // it yields the DatabaseNotification model for this row (or null).
+    $notification = $getRecord();
+    $name = $notification?->data['actor_name'] ?? null;
+    $initial = $name !== null && $name !== '' ? mb_substr($name, 0, 1) : null;
+    $createdAt = $notification?->created_at;
 @endphp
 
 <div class="flex items-center gap-3">
