@@ -7,6 +7,8 @@ use App\Observers\NewsUpdateObserver;
 use App\Policies\ActivityPolicy;
 use App\Services\Portal\NotificationCenterService;
 use App\Support\Settings;
+use Filament\Support\Facades\FilamentView;
+use Filament\View\PanelsRenderHook;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
 use Illuminate\Mail\Events\MessageSending;
@@ -16,6 +18,7 @@ use Illuminate\Support\Facades\RateLimiter;
 use Illuminate\Support\Facades\URL;
 use Illuminate\Support\Facades\View;
 use Illuminate\Support\ServiceProvider;
+use Livewire\Livewire;
 use Spatie\Activitylog\Models\Activity;
 use Symfony\Component\Mime\Address;
 
@@ -102,6 +105,15 @@ class AppServiceProvider extends ServiceProvider
                 'taxNumber' => setting('general.tax_number'),
             ]);
         });
+
+        // Global admin toast poller: mount the AdminToastNotifications Livewire
+        // component at the end of <body> on every admin panel page so freshly-
+        // created AdminNotification rows trigger an immediate toast via polling
+        // (no WebSockets/Reverb). See Feature 10.2.
+        FilamentView::registerRenderHook(
+            PanelsRenderHook::BODY_END,
+            fn () => Livewire::mount(\App\Livewire\AdminToastNotifications::class),
+        );
 
         $this->applyGeneralSettings();
         $this->applyMailSettings();

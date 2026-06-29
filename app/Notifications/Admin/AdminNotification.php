@@ -52,10 +52,16 @@ class AdminNotification extends Notification implements ShouldQueue
     public function toDatabase(object $notifiable): array
     {
         $data = [
+            // Without 'format' => 'filament', Filament's database-notifications
+            // widget (bell / unread counter / modal) filters this row out, so the
+            // admin bell would never reflect it. The extra keys below (category,
+            // priority, actor_*, target_*) are ignored by Filament's renderer.
+            'format' => 'filament',
             'title' => $this->title,
             'body' => $this->body,
             'icon' => $this->category->icon(),
             'iconColor' => $this->category->color(),
+            'color' => $this->category->color(),
             'category' => $this->category->value,
             'priority' => $this->priority->value,
             'priorityLabel' => $this->priority->label(),

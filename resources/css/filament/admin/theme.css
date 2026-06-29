@@ -212,3 +212,24 @@
 
 /* Chart card body sizing */
 .asas-chart-card__body { width: 100%; }
+
+/*
+| Admin Notification Center — bell animation (Feature 10.3).
+| Applied transiently to the topbar bell button (.fi-topbar-database-notifications-btn)
+| by the AdminToastNotifications Alpine handler when a new notification arrives.
+| One-shot wiggle (no infinite loop), swung from the top like a real bell.
+*/
+@keyframes admin-bell-ring {
+    0%   { transform: rotate(0deg); }
+    12%  { transform: rotate(15deg); }
+    25%  { transform: rotate(-13deg); }
+    38%  { transform: rotate(10deg); }
+    52%  { transform: rotate(-7deg); }
+    68%  { transform: rotate(5deg); }
+    85%  { transform: rotate(-2deg); }
+    100% { transform: rotate(0deg); }
+}
+.admin-bell-ring {
+    animation: admin-bell-ring 1.2s ease-in-out;
+    transform-origin: top center;
+}
