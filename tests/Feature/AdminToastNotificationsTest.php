@@ -65,4 +65,14 @@ class AdminToastNotificationsTest extends TestCase
             ->call('pollNew')
             ->assertNotDispatched('admin-notifications-new');
     }
+
+    public function test_inline_alpine_markup_does_not_break_the_html_attribute(): void
+    {
+        // The favicon selector must carry NO double quotes — they would terminate
+        // the double-quoted x-data attribute and spill raw markup onto the page.
+        $html = Livewire::test(AdminToastNotifications::class)->html();
+
+        $this->assertStringContainsString('link[rel~=icon]', $html);
+        $this->assertStringNotContainsString('rel="icon"', $html);
+    }
 }

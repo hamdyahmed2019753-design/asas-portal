@@ -91,7 +91,7 @@
                 return;
             }
             try {
-                const iconLink = document.querySelector('link[rel="icon"], link[rel="shortcut icon"]');
+                const iconLink = document.querySelector('link[rel~=icon]'); {{-- no double quotes: they'd close the x-data attribute --}}
                 const options = { body: n.body || '', tag: n.id };
                 if (iconLink && iconLink.href) {
                     options.icon = iconLink.href;
