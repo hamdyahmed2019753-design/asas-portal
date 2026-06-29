@@ -21,9 +21,10 @@
         <div class="ip-grid">
             <x-ip.stat-card color="primary" icon="ti-wallet" label="إجمالي رأس المال" :value="money($kpis['totalCapital'])" />
             <x-ip.stat-card color="success" icon="ti-trending-up" label="الأرباح المحققة" :value="money($kpis['realizedProfit'])" />
-            <x-ip.stat-card color="info" icon="ti-target" label="الأرباح المتوقعة" :value="money($kpis['expectedProfit'])" />
-            <x-ip.stat-card color="primary" icon="ti-folder" label="المشاركات النشطة" :value="$kpis['activeCount']" />
-            <x-ip.stat-card color="warning" icon="ti-percentage" label="متوسط العائد" :value="rtrim(rtrim(number_format($kpis['averageReturn'], 2), '0'), '.').'%'" />
+            <x-ip.stat-card color="info" icon="ti-target" label="الأرباح المنتظرة" :value="money($kpis['expectedProfit'])" />
+            <x-ip.stat-card color="warning" icon="ti-percentage" label="العائد السنوي" :value="rtrim(rtrim(number_format($kpis['averageReturn'], 2), '0'), '.').'%'" />
+            <x-ip.stat-card color="primary" icon="ti-folder" label="العقود النشطة" :value="$kpis['activeCount']" />
+            <x-ip.stat-card color="info" icon="ti-folder-check" label="العقود المنتهية" :value="$kpis['completedCount']" />
             <x-ip.stat-card color="success" icon="ti-coins" label="قيمة المحفظة" :value="money($kpis['portfolioValue'])" />
         </div>
 
@@ -37,6 +38,56 @@
                 <div style="width:100%; height:260px;"><canvas id="performanceChart" role="img" aria-label="الأرباح المحققة شهريًا"></canvas></div>
             </x-ip.chart-card>
         </div>
+
+        {{-- Asset Allocation (where is my money?) --}}
+        <x-ip.section-header title="توزيع الأصول" />
+        <x-ip.card>
+            @forelse ($assetAllocation as $row)
+                <div style="{{ $loop->first ? '' : 'margin-top:14px;' }}">
+                    <div style="display:flex; justify-content:space-between; align-items:center; font-size:13px; margin-bottom:6px;">
+                        <span style="color:var(--ip-text); font-weight:600;">{{ $row['label'] }}</span>
+                        <span style="color:var(--ip-text); opacity:.7;">{{ money($row['amount']) }} · {{ rtrim(rtrim(number_format($row['percentage'], 1), '0'), '.') }}%</span>
+                    </div>
+                    <div style="height:9px; background:var(--ip-primary-50); border-radius:99px; overflow:hidden;">
+                        <div style="height:100%; width:{{ $row['percentage'] }}%; background:var(--ip-primary); border-radius:99px;"></div>
+                    </div>
+                </div>
+            @empty
+                <p class="ip-note" style="margin:0;">لا توجد بيانات توزيع.</p>
+            @endforelse
+        </x-ip.card>
+
+        {{-- Upcoming Cashflow (when will I get paid?) --}}
+        <x-ip.section-header title="التدفقات النقدية القادمة" />
+        @if (count($upcoming['items']))
+            <div class="ip-banner ip-banner--info" style="justify-content:space-between;">
+                <span style="display:flex; align-items:center; gap:10px;">
+                    <span class="ip-banner__icon"><i class="ti ti-calendar-dollar"></i></span>
+                    <span>أقرب دفعة: {{ $upcoming['nextDate']?->translatedFormat('d M Y') }}</span>
+                </span>
+                @if ($upcoming['total'] > 0)
+                    <strong>{{ money($upcoming['total']) }} مؤكدة</strong>
+                @endif
+            </div>
+            <x-ip.data-table>
+                <x-slot:header>
+                    <tr><th>التاريخ</th><th>العقد</th><th>النوع</th><th>المبلغ</th><th>الحالة</th></tr>
+                </x-slot:header>
+                @foreach ($upcoming['items'] as $p)
+                    <tr>
+                        <td>{{ $p->due_date?->translatedFormat('d M Y') }}</td>
+                        <td>{{ $p->investment?->contract?->title ?? '—' }}</td>
+                        <td>{{ $p->type_label }}</td>
+                        <td>{{ $p->amount !== null ? money($p->amount) : 'يُحدَّد لاحقًا' }}</td>
+                        <td><x-ip.status-pill :color="$p->status_color" :label="$p->status_label" /></td>
+                    </tr>
+                @endforeach
+            </x-ip.data-table>
+        @else
+            <x-ip.card>
+                <p class="ip-note" style="margin:0;">لا توجد دفعات قادمة مجدولة حاليًا.</p>
+            </x-ip.card>
+        @endif
 
         {{-- Investments summary --}}
         <x-ip.section-header title="ملخص المشاركات">
@@ -96,7 +147,7 @@
                         new Chart(perf, {
                             type: 'bar',
                             data: {
-                                labels: @json($performance['labels']),
+                                labels: @json(collect($performance['labels'])->map(fn ($ym) => \Illuminate\Support\Carbon::createFromFormat('Y-m', $ym)->translatedFormat('M Y'))->all()),
                                 datasets: [{
                                     data: @json($performance['data']),
                                     backgroundColor: 'rgba(67,56,202,0.85)',

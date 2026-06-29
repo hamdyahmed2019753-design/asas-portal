@@ -40,10 +40,10 @@ class PortalPortfolioTest extends TestCase
         return $user;
     }
 
-    private function contract(string $title, float $return): Contract
+    private function contract(string $title, float $return, string $activityType = 'تجارة'): Contract
     {
         return Contract::create([
-            'title' => $title, 'activity_type' => 'تجارة', 'expected_return' => $return,
+            'title' => $title, 'activity_type' => $activityType, 'expected_return' => $return,
             'target_amount' => 1_000_000, 'min_amount' => 1_000, 'duration_months' => 12,
             'payouts_count' => 4, 'status' => 'open',
         ]);
@@ -98,8 +98,60 @@ class PortalPortfolioTest extends TestCase
         $this->assertSame(5000.0, $kpis['realizedProfit']);   // 1500 + 2500 + 1000
         $this->assertSame(6500.0, $kpis['expectedProfit']);   // all profit payouts
         $this->assertSame(2, $kpis['activeCount']);
+        $this->assertSame(0, $kpis['completedCount']);        // neither has a past end date
         $this->assertSame(15.0, $kpis['averageReturn']);      // capital-weighted (10+20)/2
         $this->assertSame(105000.0, $kpis['portfolioValue']); // capital + realized
+    }
+
+    public function test_active_vs_completed_contracts_by_maturity(): void
+    {
+        $user = $this->member();
+        $contract = $this->contract('عقد', 10);
+
+        $this->investment($user, $contract, 10000);                          // active (no end date)
+        $this->investment($user, $contract, 10000)->update(['end_date' => '2027-01-01']); // active (future)
+        $this->investment($user, $contract, 10000)->update(['end_date' => '2026-01-01']); // completed (past)
+
+        $kpis = $this->data($user)['kpis']; // "now" is 2026-06-20 (see setUp)
+
+        $this->assertSame(2, $kpis['activeCount']);
+        $this->assertSame(1, $kpis['completedCount']);
+    }
+
+    public function test_asset_allocation_groups_capital_by_sector(): void
+    {
+        $user = $this->member();
+        $this->investment($user, $this->contract('عقد تجاري', 10, 'تجارة'), 60000);
+        $this->investment($user, $this->contract('عقد عقاري', 8, 'عقارات'), 40000);
+
+        $alloc = $this->data($user)['assetAllocation'];
+
+        // Sorted by capital descending.
+        $this->assertSame('تجارة', $alloc[0]['label']);
+        $this->assertSame(60000.0, $alloc[0]['amount']);
+        $this->assertSame(60.0, $alloc[0]['percentage']);
+        $this->assertSame('عقارات', $alloc[1]['label']);
+        $this->assertSame(40.0, $alloc[1]['percentage']);
+    }
+
+    public function test_upcoming_cashflow_lists_next_payouts_in_date_order(): void
+    {
+        $user = $this->member();
+        $inv = $this->investment($user, $this->contract('عقد', 10), 50000);
+
+        $this->payout($inv, 'paid', 1000, '2026-05-01', '2026-05-01'); // past/paid → excluded
+        $this->payout($inv, 'due', 1500, '2026-07-01');                // upcoming (has amount)
+        Payout::create([                                                // upcoming (manual amount)
+            'investment_id' => $inv->id, 'type' => 'profit', 'sequence' => 2,
+            'due_date' => '2026-09-01', 'amount' => null, 'status' => 'scheduled',
+        ]);
+
+        $upcoming = $this->data($user)['upcoming']; // "now" is 2026-06-20 (see setUp)
+
+        $this->assertCount(2, $upcoming['items']);
+        $this->assertSame('2026-07-01', $upcoming['items']->first()->due_date->format('Y-m-d'));
+        $this->assertSame(1500.0, $upcoming['total']); // scheduled (null) counts as 0
+        $this->assertSame('2026-07-01', $upcoming['nextDate']->format('Y-m-d'));
     }
 
     public function test_allocation_chart(): void

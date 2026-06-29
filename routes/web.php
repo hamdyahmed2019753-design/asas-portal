@@ -7,6 +7,7 @@ use App\Http\Controllers\Portal\DocumentDownloadController;
 use App\Http\Controllers\Portal\DocumentsController;
 use App\Http\Controllers\Portal\HomeController;
 use App\Http\Controllers\Portal\InvestmentController;
+use App\Http\Controllers\Portal\InvestmentDocumentController;
 use App\Http\Controllers\Portal\KycController;
 use App\Http\Controllers\Portal\KycDocumentController;
 use App\Http\Controllers\Portal\NewsController;
@@ -44,7 +45,14 @@ Route::middleware(['auth', 'verified', 'investor'])->prefix('portal')->name('por
     Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio');
     Route::get('/investments', [InvestmentController::class, 'index'])->name('investments');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
+
+    // Generated PDF documents (owner-only via InvestmentPolicy).
+    Route::get('/investments/{investment}/contract', [InvestmentDocumentController::class, 'contract'])->name('investments.contract');
+    Route::get('/investments/{investment}/statement', [InvestmentDocumentController::class, 'statement'])->name('investments.statement');
+    Route::get('/investments/{investment}/certificate', [InvestmentDocumentController::class, 'certificate'])->name('investments.certificate');
+
     Route::get('/payouts', [PayoutController::class, 'index'])->name('payouts');
+    Route::get('/payouts/{payout}/receipt', [InvestmentDocumentController::class, 'receipt'])->name('payouts.receipt');
 
     // KYC document download (owner-only, signed URL).
     Route::get('/kyc/document/{type}', [KycDocumentController::class, 'own'])

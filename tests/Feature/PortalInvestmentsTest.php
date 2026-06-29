@@ -178,6 +178,35 @@ class PortalInvestmentsTest extends TestCase
         $this->assertContains('أول توزيعة مدفوعة', $titles);
     }
 
+    public function test_profit_breakdown(): void
+    {
+        $user = $this->member();
+        $investment = $this->approvedInvestment($user); // capital 5000, one 1500 profit paid
+
+        $profit = app(InvestmentPortalService::class)->details($investment)['profit'];
+
+        $this->assertSame(1500.0, $profit['received']);
+        $this->assertSame(0.0, $profit['remaining']);   // no other profit amount is set yet
+        $this->assertSame(1500.0, $profit['expected']);
+        $this->assertSame(6500.0, $profit['value']);    // capital 5000 + realized 1500
+    }
+
+    public function test_timeline_includes_interest_and_contract_end(): void
+    {
+        $user = $this->member();
+        $contract = $this->contract();
+        \App\Models\ContractInterest::create([
+            'user_id' => $user->id, 'contract_id' => $contract->id, 'status' => 'pending',
+        ]);
+        $investment = $this->investment($user, $contract);
+        app(ApproveInvestment::class)->execute($investment);
+
+        $titles = array_column(app(InvestmentPortalService::class)->details($investment->refresh())['timeline'], 'title');
+
+        $this->assertContains('تم إرسال الاهتمام', $titles);
+        $this->assertContains('نهاية العقد المتوقعة', $titles); // end date is in the future
+    }
+
     public function test_empty_state_when_no_payouts(): void
     {
         $user = $this->member();

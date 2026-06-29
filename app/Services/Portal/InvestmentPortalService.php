@@ -6,6 +6,7 @@ use App\Enums\InvestmentStatus;
 use App\Enums\PayoutStatus;
 use App\Enums\PayoutType;
 use App\Models\Contract;
+use App\Models\ContractInterest;
 use App\Models\Investment;
 use App\Models\Payout;
 use App\Models\User;
@@ -77,44 +78,76 @@ class InvestmentPortalService
         $investment->loadMissing(['contract', 'payouts' => fn ($q) => $q->orderBy('due_date')]);
         $payouts = $investment->payouts;
 
+        $invested = (float) $investment->amount;
+
         $profitPaid = (float) $payouts
             ->where('type', PayoutType::Profit)
             ->where('status', PayoutStatus::Paid)
             ->sum('amount');
+
+        // Expected total profit = every profit payout's amount (manual/scheduled
+        // amounts not yet set count as 0). Remaining = expected − received.
+        $profitExpected = (float) $payouts->where('type', PayoutType::Profit)->sum('amount');
+        $profitRemaining = max(0.0, $profitExpected - $profitPaid);
 
         $paidProfitPayouts = $payouts
             ->where('status', PayoutStatus::Paid)
             ->sortBy('paid_at')
             ->values();
 
+        // The investor's earliest interest in this contract (timeline anchor).
+        $interestAt = ContractInterest::query()
+            ->where('user_id', $investment->user_id)
+            ->where('contract_id', $investment->contract_id)
+            ->oldest()
+            ->value('created_at');
+
         return [
             'investment' => $investment,
             'payouts' => $payouts,
             'hasPayouts' => $payouts->isNotEmpty(),
-            'investedAmount' => (float) $investment->amount,
+            'investedAmount' => $invested,
             'profitPaid' => $profitPaid,
             'expectedReturn' => $investment->contract?->expected_return,
+            'profit' => [
+                'received' => $profitPaid,
+                'remaining' => $profitRemaining,
+                'expected' => $profitExpected,
+                'value' => $invested + $profitPaid, // capital + realized profit
+            ],
             'summary' => [
                 'total' => $payouts->count(),
                 'paid' => $payouts->where('status', PayoutStatus::Paid)->count(),
                 'due' => $payouts->where('status', PayoutStatus::Due)->count(),
                 'upcoming' => $payouts->where('status', PayoutStatus::Scheduled)->count(),
             ],
-            'timeline' => $this->buildTimeline($investment, $paidProfitPayouts),
+            'support' => [
+                'email' => setting('general.support_email'),
+                'phone' => setting('general.support_phone'),
+            ],
+            'timeline' => $this->buildTimeline($investment, $paidProfitPayouts, $interestAt),
         ];
     }
 
     /**
+     * Chronological lifecycle: interest → submission → approval → payouts → end.
+     *
      * @param  Collection<int, Payout>  $paidPayouts
      * @return array<int, array<string, string>>
      */
-    private function buildTimeline(Investment $investment, $paidPayouts): array
+    private function buildTimeline(Investment $investment, $paidPayouts, $interestAt = null): array
     {
-        $events = [[
+        $events = [];
+
+        if ($interestAt !== null) {
+            $events[] = ['title' => 'تم إرسال الاهتمام', 'date' => $interestAt->format('Y-m-d'), 'color' => 'info'];
+        }
+
+        $events[] = [
             'title' => 'تم تقديم المشاركة',
             'date' => $investment->created_at?->format('Y-m-d'),
             'color' => 'info',
-        ]];
+        ];
 
         if ($investment->approved_at) {
             $events[] = ['title' => 'تم اعتماد المشاركة', 'date' => $investment->approved_at->format('Y-m-d'), 'color' => 'success'];
@@ -129,6 +162,15 @@ class InvestmentPortalService
             if ($paidPayouts->count() > 1) {
                 $events[] = ['title' => 'آخر توزيعة مدفوعة', 'date' => $paidPayouts->last()->paid_at?->format('Y-m-d'), 'color' => 'success'];
             }
+        }
+
+        if ($investment->end_date) {
+            $ended = $investment->end_date->isPast();
+            $events[] = [
+                'title' => $ended ? 'انتهى العقد' : 'نهاية العقد المتوقعة',
+                'date' => $investment->end_date->format('Y-m-d'),
+                'color' => $ended ? 'success' : 'gray',
+            ];
         }
 
         return $events;

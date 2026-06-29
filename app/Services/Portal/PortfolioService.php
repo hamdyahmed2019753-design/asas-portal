@@ -5,6 +5,7 @@ namespace App\Services\Portal;
 use App\Enums\PayoutStatus;
 use App\Enums\PayoutType;
 use App\Models\Investment;
+use App\Models\Payout;
 use App\Models\User;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
@@ -25,7 +26,7 @@ class PortfolioService
         // One eager-loaded pass: contract + per-investment realized/expected profit.
         $investments = $user->investments()
             ->approved()
-            ->with('contract:id,title,expected_return')
+            ->with('contract:id,title,expected_return,activity_type')
             ->withSum(['payouts as paid_profit' => fn ($q) => $q
                 ->where('type', PayoutType::Profit->value)
                 ->where('status', PayoutStatus::Paid->value)], 'amount')
@@ -37,19 +38,84 @@ class PortfolioService
         $realizedProfit = (float) $investments->sum(fn ($i) => (float) $i->paid_profit);
         $expectedProfit = (float) $investments->sum(fn ($i) => (float) $i->expected_profit);
 
+        // Active vs. completed by maturity — derived from the loaded collection
+        // (no extra query). A contract is "completed" once its end date passes.
+        $today = now()->startOfDay();
+        $activeCount = $investments->filter(
+            fn ($i) => $i->end_date === null || $i->end_date->greaterThanOrEqualTo($today)
+        )->count();
+        $completedCount = $investments->count() - $activeCount;
+
         return [
             'hasInvestments' => $investments->isNotEmpty(),
             'kpis' => [
                 'totalCapital' => $totalCapital,
                 'realizedProfit' => $realizedProfit,
                 'expectedProfit' => $expectedProfit,
-                'activeCount' => $investments->count(),
+                // Capital-weighted expected annual return (الـعائد السنوي).
                 'averageReturn' => $this->averageReturn($investments, $totalCapital),
+                'activeCount' => $activeCount,
+                'completedCount' => $completedCount,
                 'portfolioValue' => $totalCapital + $realizedProfit,
             ],
             'allocation' => $this->allocation($investments, $totalCapital),
+            'assetAllocation' => $this->allocationByType($investments, $totalCapital),
+            'upcoming' => $this->upcomingCashflow($user),
             'performance' => $this->performance($user),
             'investments' => $investments,
+        ];
+    }
+
+    /**
+     * Asset allocation by sector (contract activity type) — answers "where is my
+     * money invested?". Derived from the already-loaded collection (no query).
+     *
+     * @param  Collection<int, Investment>  $investments
+     * @return array<int, array{label: string, amount: float, percentage: float}>
+     */
+    private function allocationByType(Collection $investments, float $totalCapital): array
+    {
+        return $investments
+            ->groupBy(fn ($i) => $i->contract->activity_type ?: 'أخرى')
+            ->map(function (Collection $group, string $type) use ($totalCapital): array {
+                $amount = (float) $group->sum(fn ($i) => (float) $i->amount);
+
+                return [
+                    'label' => $type,
+                    'amount' => $amount,
+                    'percentage' => $totalCapital > 0 ? round($amount / $totalCapital * 100, 1) : 0.0,
+                ];
+            })
+            ->sortByDesc('amount')
+            ->values()
+            ->all();
+    }
+
+    /**
+     * The investor's next upcoming payouts (scheduled or due) ordered by date —
+     * answers "when will I receive my money?". A single query with the contract
+     * eager-loaded; scheduled profit amounts are still manual (null) at this
+     * stage and surface as "to be set".
+     *
+     * @return array{items: Collection<int, Payout>, total: float, nextDate: ?\Illuminate\Support\Carbon}
+     */
+    private function upcomingCashflow(User $user, int $limit = 6): array
+    {
+        // Explicit `payouts.` prefixes: status/due_date exist on both joined
+        // tables in the hasManyThrough, so bare columns would be ambiguous.
+        $items = $user->payouts()
+            ->whereIn('payouts.status', [PayoutStatus::Scheduled->value, PayoutStatus::Due->value])
+            ->whereNotNull('payouts.due_date')
+            ->where('payouts.due_date', '>=', now()->startOfDay())
+            ->with('investment.contract:id,title')
+            ->orderBy('payouts.due_date')
+            ->limit($limit)
+            ->get();
+
+        return [
+            'items' => $items,
+            'total' => (float) $items->sum(fn (Payout $p) => (float) $p->amount),
+            'nextDate' => $items->first()?->due_date,
         ];
     }
 

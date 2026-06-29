@@ -17,6 +17,25 @@
             if ('Notification' in window && Notification.permission === 'default') {
                 Notification.requestPermission().catch(() => {});
             }
+
+            // Browsers block Web Audio until the user interacts with the page, so
+            // a beep fired from wire:poll (no gesture) stays silent. Unlock the
+            // AudioContext on the FIRST real interaction so later beeps play.
+            const unlock = () => {
+                try {
+                    if (! this.audioCtx) {
+                        const Ctor = window.AudioContext || window.webkitAudioContext;
+                        if (Ctor) this.audioCtx = new Ctor();
+                    }
+                    if (this.audioCtx && this.audioCtx.state === 'suspended') {
+                        this.audioCtx.resume().catch(() => {});
+                    }
+                } catch (e) {}
+                window.removeEventListener('pointerdown', unlock);
+                window.removeEventListener('keydown', unlock);
+            };
+            window.addEventListener('pointerdown', unlock);
+            window.addEventListener('keydown', unlock);
         },
 
         onNew(notifications) {
