@@ -62,7 +62,7 @@ class RegisteredUserController extends Controller
             priority: AdminNotificationPriority::Medium,
             actor: $user,
             target: $user,
-            url: InvestorResource::getUrl('view', ['record' => $user]),
+            url: InvestorResource::getUrl('index'),
             actionLabel: 'فتح صفحة المستثمر',
         ));
 

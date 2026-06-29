@@ -148,13 +148,13 @@ class AdminNotificationResource extends Resource
                     ->query(fn (Builder $query, array $data): Builder => $query
                         ->when($data['value'] ?? null, fn (Builder $q, $value) => $q->where('data->priority', $value))),
             ])
+            ->recordUrl(fn (DatabaseNotification $record): ?string => AdminNotificationCategory::urlFor($record->data))
             ->actions([
                 Tables\Actions\Action::make('open')
-                    ->label('فتح السجل')
+                    ->label('عرض القائمة')
                     ->icon('heroicon-o-arrow-top-right-on-square')
-                    ->url(fn (DatabaseNotification $record): ?string => $record->data['url'] ?? null)
-                    ->openUrlInNewTab()
-                    ->visible(fn (DatabaseNotification $record): bool => isset($record->data['url']))
+                    ->url(fn (DatabaseNotification $record): ?string => AdminNotificationCategory::urlFor($record->data))
+                    ->visible(fn (DatabaseNotification $record): bool => AdminNotificationCategory::urlFor($record->data) !== null)
                     ->after(fn (DatabaseNotification $record) => $record->read_at === null ? $record->markAsRead() : null),
                 Tables\Actions\Action::make('markRead')
                     ->label('تعليم كمقروء')

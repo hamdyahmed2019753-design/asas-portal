@@ -89,11 +89,12 @@ class AdminToastNotifications extends Component
                 ->iconColor($category?->color() ?? 'primary')
                 ->duration(6000); // auto-close after 6 seconds
 
-            if (! empty($row->data['url'])) {
+            $listUrl = AdminNotificationCategory::urlFor($row->data);
+            if ($listUrl !== null) {
                 $toast->actions([
                     Action::make('view')
-                        ->label('عرض')
-                        ->url($row->data['url'], true)
+                        ->label('عرض القائمة')
+                        ->url($listUrl, true)
                         ->button(),
                 ]);
             }
@@ -104,7 +105,7 @@ class AdminToastNotifications extends Component
                 'id' => $row->id,
                 'title' => $row->data['title'] ?? '',
                 'body' => $row->data['body'] ?? '',
-                'url' => $row->data['url'] ?? '',
+                'url' => $listUrl ?? '',
             ];
         }
 

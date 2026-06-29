@@ -69,6 +69,12 @@
         @guest
             <p class="ip-prose">للاطلاع على المزيد والمشاركة في هذه الفرصة، يرجى تسجيل الدخول إلى حسابك.</p>
             <div style="margin-top:12px;"><a href="{{ route('login') }}" class="ip-btn">دخول للتسجيل</a></div>
+        @elseif (! auth()->user()->hasVerifiedEmail())
+            <div class="ip-banner ip-banner--warning" style="margin:0;">
+                <span class="ip-banner__icon"><i class="ti ti-mail-exclamation"></i></span>
+                <span>وثّق بريدك الإلكتروني للمشاركة في هذه الفرصة. يمكنك تصفّح كل العقود الآن.</span>
+            </div>
+            <div style="margin-top:12px;"><a href="{{ route('verification.notice') }}" class="ip-btn">توثيق البريد الإلكتروني</a></div>
         @elseif ($investment)
             <div class="ip-banner ip-banner--success" style="margin:0;">
                 <span class="ip-banner__icon"><i class="ti ti-circle-check"></i></span>

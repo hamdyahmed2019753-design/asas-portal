@@ -49,7 +49,7 @@ class ConvertContractInterest
                 priority: AdminNotificationPriority::Medium,
                 actor: $interest->user,
                 target: $investment,
-                url: InvestmentResource::getUrl('view', ['record' => $investment]),
+                url: InvestmentResource::getUrl('index'),
                 actionLabel: 'فتح المشاركة',
             ));
 

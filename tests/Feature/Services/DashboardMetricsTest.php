@@ -29,7 +29,7 @@ class DashboardMetricsTest extends TestCase
 
     private function user(string $role = 'investor'): User
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'User',
             'email' => uniqid('u_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

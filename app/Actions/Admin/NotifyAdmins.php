@@ -24,7 +24,10 @@ class NotifyAdmins
         $admins = Cache::remember(
             'admins.notify.ids',
             now()->addSeconds(self::CACHE_TTL),
-            fn () => User::role('admin')->get(['id']),
+            // whereHas (not the Spatie role() scope) so a missing `admin` role
+            // yields no recipients instead of throwing RoleDoesNotExist — keeps
+            // business actions (approvals, payouts, registration) crash-safe.
+            fn () => User::whereHas('roles', fn ($q) => $q->where('name', 'admin'))->get(['id']),
         );
 
         if ($admins->isNotEmpty()) {

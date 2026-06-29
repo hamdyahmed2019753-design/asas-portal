@@ -20,7 +20,7 @@ class PortalFoundationTest extends TestCase
 
     private function userWithRole(string $role): User
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => ucfirst($role),
             'email' => $role.'_'.uniqid().'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

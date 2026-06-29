@@ -38,7 +38,7 @@ class NewsUpdateObserver
             category: AdminNotificationCategory::News,
             priority: AdminNotificationPriority::Low,
             target: $news,
-            url: NewsResource::getUrl('view', ['record' => $news]),
+            url: NewsResource::getUrl('index'),
             actionLabel: 'فتح الخبر',
         ));
     }

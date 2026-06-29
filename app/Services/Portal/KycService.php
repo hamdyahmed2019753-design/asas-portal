@@ -148,7 +148,7 @@ class KycService
             priority: AdminNotificationPriority::Medium,
             actor: $user,
             target: $user,
-            url: InvestorResource::getUrl('view', ['record' => $user]),
+            url: InvestorResource::getUrl('index'),
             actionLabel: 'فتح المستثمر',
         ));
     }
@@ -165,7 +165,7 @@ class KycService
             priority: AdminNotificationPriority::High,
             actor: $user,
             target: $user,
-            url: InvestorResource::getUrl('view', ['record' => $user]),
+            url: InvestorResource::getUrl('index'),
             actionLabel: 'فتح المستثمر',
         ));
     }
@@ -216,7 +216,7 @@ class KycService
             priority: AdminNotificationPriority::High,
             actor: $user,
             target: $user,
-            url: InvestorResource::getUrl('view', ['record' => $user]),
+            url: InvestorResource::getUrl('index'),
             actionLabel: 'مراجعة التحقق',
         ));
     }

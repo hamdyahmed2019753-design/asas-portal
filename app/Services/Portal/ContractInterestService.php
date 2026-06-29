@@ -7,7 +7,7 @@ use App\Enums\AdminNotificationCategory;
 use App\Enums\AdminNotificationPriority;
 use App\Enums\ContractInterestStatus;
 use App\Exceptions\DuplicateInterestException;
-use App\Filament\Resources\InvestorResource;
+use App\Filament\Resources\ContractInterestResource;
 use App\Models\Contract;
 use App\Models\ContractInterest;
 use App\Models\User;
@@ -47,7 +47,7 @@ class ContractInterestService
             priority: AdminNotificationPriority::Medium,
             actor: $user,
             target: $interest,
-            url: InvestorResource::getUrl('view', ['record' => $user]),
+            url: ContractInterestResource::getUrl('index'),
             actionLabel: 'فتح المستثمر',
         ));
 

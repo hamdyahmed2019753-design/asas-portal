@@ -12,7 +12,11 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.7.0/dist/tabler-icons.min.css" rel="stylesheet">
+
+    {{-- Self-hosted Tabler icon webfont + preload: glyphs render on first paint
+         instead of waiting for a CDN CSS→font chain that left icons blank. --}}
+    <link rel="preload" as="font" type="font/woff2" href="/tabler/fonts/tabler-icons.woff2?v3.7.0" crossorigin>
+    <link href="/tabler/tabler-icons.min.css" rel="stylesheet">
 
     <script>
         (function () {

@@ -20,7 +20,7 @@ class MarkPayoutPaidTest extends TestCase
 
     private function makePayout(string $type, ?float $amount, string $status): Payout
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'Investor',
             'email' => uniqid('inv_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

@@ -27,7 +27,7 @@ class ActivityResourceTest extends TestCase
         parent::setUp();
         $this->seed(RolesSeeder::class);
 
-        $this->admin = User::create([
+        $this->admin = User::forceCreate([
             'name' => 'Admin',
             'email' => 'admin@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

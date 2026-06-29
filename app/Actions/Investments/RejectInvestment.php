@@ -48,7 +48,7 @@ class RejectInvestment
                 priority: AdminNotificationPriority::High,
                 actor: $investment->user,
                 target: $investment,
-                url: InvestmentResource::getUrl('view', ['record' => $investment]),
+                url: InvestmentResource::getUrl('index'),
                 actionLabel: 'فتح المشاركة',
             ));
 

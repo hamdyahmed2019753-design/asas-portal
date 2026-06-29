@@ -17,7 +17,7 @@ class RejectInvestmentTest extends TestCase
 
     private function makePendingInvestment(): Investment
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'Member',
             'email' => uniqid('member_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

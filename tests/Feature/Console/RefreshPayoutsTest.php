@@ -21,7 +21,7 @@ class RefreshPayoutsTest extends TestCase
     {
         parent::setUp();
 
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'Investor',
             'email' => uniqid('inv_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

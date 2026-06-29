@@ -6,6 +6,18 @@
 @section('content')
     <x-ip.page-header title="العقود الاستثمارية" subtitle="استعرض الفرص المتاحة وفلترها حسب الحالة ونوع النشاط." />
 
+    @auth
+        @if (! auth()->user()->hasVerifiedEmail())
+            <div class="ip-banner ip-banner--info" style="justify-content:space-between;">
+                <span style="display:flex; align-items:center; gap:10px;">
+                    <span class="ip-banner__icon"><i class="ti ti-mail-exclamation"></i></span>
+                    <span>أنت تتصفّح كزائر — وثّق بريدك الإلكتروني للمشاركة في أي عقد.</span>
+                </span>
+                <a href="{{ route('verification.notice') }}" class="ip-btn">توثيق البريد</a>
+            </div>
+        @endif
+    @endauth
+
     <form method="GET" class="ip-filters">
         <div class="ip-field">
             <span class="ip-field__label">الحالة</span>

@@ -9,7 +9,7 @@
 
         <div class="ip-banner ip-banner--warning" style="margin-bottom:16px;">
             <span class="ip-banner__icon"><i class="ti ti-mail-exclamation"></i></span>
-            <span>لم يتم توثيق بريدك الإلكتروني بعد — لن تتمكن من دخول البوابة قبل التوثيق.</span>
+            <span>لم يتم توثيق بريدك الإلكتروني بعد — التوثيق مطلوب فقط للمشاركة في العقود.</span>
         </div>
 
         @if (session('status') == 'verification-link-sent')
@@ -23,6 +23,12 @@
             @csrf
             <button type="submit" class="ip-btn ip-btn--block">إعادة إرسال رسالة التحقق</button>
         </form>
+
+        {{-- Explore-before-verify: the wall is never a dead-end — browse contracts now. --}}
+        <a href="{{ route('contracts.index') }}" class="ip-btn ip-btn--block"
+           style="margin-top:10px; background:transparent; color:var(--ip-primary); border:1px solid var(--ip-border);">
+            <i class="ti ti-search"></i> تصفّح العقود المتاحة الآن
+        </a>
 
         <x-slot:footer>
             <form method="POST" action="{{ route('logout') }}">

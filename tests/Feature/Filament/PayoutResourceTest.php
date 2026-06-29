@@ -26,7 +26,7 @@ class PayoutResourceTest extends TestCase
         parent::setUp();
         $this->seed(RolesSeeder::class);
 
-        $admin = User::create([
+        $admin = User::forceCreate([
             'name' => 'Admin',
             'email' => 'admin@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),
@@ -39,7 +39,7 @@ class PayoutResourceTest extends TestCase
 
     private function makePayout(string $type = 'profit', ?float $amount = 200, string $status = 'scheduled'): Payout
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'Investor',
             'email' => uniqid('inv_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

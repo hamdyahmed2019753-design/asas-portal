@@ -25,7 +25,7 @@ class PortalInvestmentsTest extends TestCase
 
     private function member(): User
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'مستثمر',
             'email' => uniqid('u_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

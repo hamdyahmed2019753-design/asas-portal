@@ -209,6 +209,10 @@ class PortalKycEnhancementsTest extends TestCase
             return $n;
         };
 
+        // Warm the (cached) settings read the portal layout performs, so neither
+        // measurement below pays that one-off query and the comparison is fair.
+        app(\App\Support\Settings::class)->all();
+
         $withWidget = $countFor(KycState::UnderReview);
         $withoutWidget = $countFor(KycState::Approved);
 

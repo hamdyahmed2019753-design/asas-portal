@@ -50,7 +50,7 @@ class MarkPayoutPaid
             priority: AdminNotificationPriority::Medium,
             actor: $payout->investment?->user,
             target: $payout,
-            url: PayoutResource::getUrl('view', ['record' => $payout]),
+            url: PayoutResource::getUrl('index'),
             actionLabel: 'فتح التوزيعة',
         ));
 

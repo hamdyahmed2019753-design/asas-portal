@@ -26,7 +26,7 @@ class InvestmentResourceTest extends TestCase
         parent::setUp();
         $this->seed(RolesSeeder::class);
 
-        $admin = User::create([
+        $admin = User::forceCreate([
             'name' => 'Admin',
             'email' => 'admin@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),
@@ -39,7 +39,7 @@ class InvestmentResourceTest extends TestCase
 
     private function pendingInvestment(): Investment
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'Member',
             'email' => uniqid('member_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

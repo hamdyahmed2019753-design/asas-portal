@@ -5,17 +5,13 @@
 @section('content')
     <x-ip.page-header title="لوحتي" subtitle="نظرة سريعة على محفظتك الاستثمارية في أساس." />
 
-    @unless ($onboardingComplete)
-        <div class="ip-banner ip-banner--warning" style="justify-content:space-between;">
-            <span style="display:flex; align-items:center; gap:10px;">
-                <span class="ip-banner__icon"><i class="ti ti-rosette-discount-check"></i></span>
-                <span>أكمل تسجيلك ورفع مستنداتك لتفعيل حسابك والبدء في الاستثمار.</span>
-            </span>
-            <a href="{{ route('portal.onboarding') }}" class="ip-btn">إكمال التسجيل</a>
-        </div>
-    @elseif ($kyc)
+    @if ($nextStep)
+        <x-ip.next-step :step="$nextStep" />
+    @endif
+
+    @if ($kyc)
         <x-ip.kyc-progress :kyc="$kyc" />
-    @endunless
+    @endif
 
     @if ($pendingInterests > 0)
         <div class="ip-banner ip-banner--info" style="justify-content:space-between;">

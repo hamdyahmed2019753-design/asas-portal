@@ -67,7 +67,7 @@ class ApproveInvestment
                 priority: AdminNotificationPriority::Medium,
                 actor: $user,
                 target: $investment,
-                url: InvestmentResource::getUrl('view', ['record' => $investment]),
+                url: InvestmentResource::getUrl('index'),
                 actionLabel: 'فتح المشاركة',
             ));
 

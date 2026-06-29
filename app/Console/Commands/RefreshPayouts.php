@@ -46,7 +46,7 @@ class RefreshPayouts extends Command
                 priority: AdminNotificationPriority::High,
                 actor: $payout->investment?->user,
                 target: $payout,
-                url: PayoutResource::getUrl('view', ['record' => $payout]),
+                url: PayoutResource::getUrl('index'),
                 actionLabel: 'فتح التوزيعة',
             ));
         }

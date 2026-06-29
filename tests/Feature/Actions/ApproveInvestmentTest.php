@@ -24,7 +24,7 @@ class ApproveInvestmentTest extends TestCase
 
     private function makePendingInvestment(int $duration = 12, int $payoutsCount = 4): Investment
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'Member',
             'email' => uniqid('member_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),

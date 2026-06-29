@@ -24,7 +24,7 @@ class PortalDashboardTest extends TestCase
 
     private function member(): User
     {
-        $user = User::create([
+        $user = User::forceCreate([
             'name' => 'عضو',
             'email' => uniqid('m_').'@test.local',
             'password' => 'secret123', 'email_verified_at' => now(),
