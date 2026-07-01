@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Livewire\AdminToastNotifications;
 use App\Models\NewsUpdate;
 use App\Observers\NewsUpdateObserver;
 use App\Policies\ActivityPolicy;
@@ -112,7 +113,7 @@ class AppServiceProvider extends ServiceProvider
         // (no WebSockets/Reverb). See Feature 10.2.
         FilamentView::registerRenderHook(
             PanelsRenderHook::BODY_END,
-            fn () => Livewire::mount(\App\Livewire\AdminToastNotifications::class),
+            fn () => Livewire::mount(AdminToastNotifications::class),
         );
 
         $this->applyGeneralSettings();

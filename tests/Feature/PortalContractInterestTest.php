@@ -72,23 +72,7 @@ class PortalContractInterestTest extends TestCase
         Notification::assertSentTo($user, ContractInterestNotification::class);
     }
 
-    public function test_interest_modal_has_no_click_outside_regression(): void
-    {
-        // Regression: the interest modal must NOT use @click.outside on .ip-modal
-        // (it races with the opening click and instantly closes the modal — the
-        // "nothing happens" bug). The full-screen backdrop handles outside clicks.
-        $contract = $this->contract();
-
-        $this->actingAs($this->approved())
-            ->get(route('contracts.show', $contract))
-            ->assertOk()
-            ->assertSee('إبداء اهتمام')
-            ->assertSee('/portal/contracts/'.$contract->id.'/interest', false)
-            ->assertSee('class="ip-modal"', false)
-            ->assertDontSee('ip-modal" @click.outside', false);
-    }
-
-    public function test_already_invested_user_sees_participation_not_interest_button(): void
+    public function test_already_invested_user_sees_participation_not_subscribe_button(): void
     {
         $user = $this->approved();
         $contract = $this->contract();
@@ -101,7 +85,7 @@ class PortalContractInterestTest extends TestCase
             ->get(route('contracts.show', $contract))
             ->assertOk()
             ->assertSee('أنت مشارك في هذا العقد')
-            ->assertDontSee('إبداء اهتمام');
+            ->assertDontSee('اشتراك في العقد');
     }
 
     public function test_interest_requires_confirmation(): void

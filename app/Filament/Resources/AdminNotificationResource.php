@@ -7,7 +7,6 @@ use App\Enums\AdminNotificationPriority;
 use App\Filament\Resources\AdminNotificationResource\Pages;
 use App\Models\User;
 use App\Notifications\Admin\AdminNotification;
-use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
@@ -15,6 +14,7 @@ use Filament\Tables\Actions\BulkAction;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Notifications\DatabaseNotification;
 
 /**
@@ -42,7 +42,7 @@ class AdminNotificationResource extends Resource
         return false;
     }
 
-    public static function canEdit(\Illuminate\Database\Eloquent\Model $record): bool
+    public static function canEdit(Model $record): bool
     {
         return false;
     }

@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Notifications\KycApprovedNotification;
 use App\Notifications\KycRejectedNotification;
 use App\Services\Portal\KycService;
+use App\Support\Settings;
 use Database\Seeders\RolesSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Http\Request;
@@ -47,7 +48,8 @@ class PortalKycEnhancementsTest extends TestCase
     {
         return Contract::create([
             'title' => 'صندوق النمو', 'activity_type' => 'تجارة', 'target_amount' => 1_000_000,
-            'min_amount' => 1_000, 'duration_months' => 12, 'payouts_count' => 4, 'status' => 'open',
+            'min_amount' => 1_000, 'share_price' => 1_000, 'duration_months' => 12,
+            'payouts_count' => 4, 'status' => 'open',
         ]);
     }
 
@@ -64,19 +66,19 @@ class PortalKycEnhancementsTest extends TestCase
         $this->assertFalse($pending->can('create', ContractInterest::class));
     }
 
-    public function test_contract_page_shows_interest_cta_only_when_approved(): void
+    public function test_contract_page_shows_subscribe_cta_only_when_approved(): void
     {
         $contract = $this->openContract();
 
         $this->actingAs($this->member(KycState::Approved))
             ->get(route('contracts.show', $contract))
             ->assertOk()
-            ->assertSee('إبداء اهتمام');
+            ->assertSee('اشتراك في العقد');
 
         $this->actingAs($this->member(KycState::UnderReview))
             ->get(route('contracts.show', $contract))
             ->assertOk()
-            ->assertDontSee('إبداء اهتمام')
+            ->assertDontSee('اشتراك في العقد')
             ->assertSee('يجب اكتمال التحقق من هويتك');
     }
 
@@ -211,7 +213,7 @@ class PortalKycEnhancementsTest extends TestCase
 
         // Warm the (cached) settings read the portal layout performs, so neither
         // measurement below pays that one-off query and the comparison is fair.
-        app(\App\Support\Settings::class)->all();
+        app(Settings::class)->all();
 
         $withWidget = $countFor(KycState::UnderReview);
         $withoutWidget = $countFor(KycState::Approved);

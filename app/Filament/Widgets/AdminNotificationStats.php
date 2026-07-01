@@ -5,6 +5,7 @@ namespace App\Filament\Widgets;
 use App\Enums\AdminNotificationPriority;
 use App\Filament\Widgets\Base\BaseKpiWidget;
 use App\Notifications\Admin\AdminNotification;
+use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 
@@ -65,7 +66,7 @@ class AdminNotificationStats extends BaseKpiWidget
      */
     private function metrics(int $adminId): array
     {
-        $base = fn () => \Illuminate\Notifications\DatabaseNotification::query()
+        $base = fn () => DatabaseNotification::query()
             ->where('notifiable_id', $adminId)
             ->where('type', AdminNotification::class);
 

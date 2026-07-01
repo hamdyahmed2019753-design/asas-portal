@@ -19,10 +19,14 @@ class Investment extends Model
         'user_id',
         'contract_id',
         'amount',
+        'shares',
+        'receipt_path',
+        'payment_proof_path',
         'status',
         'start_date',
         'end_date',
         'approved_at',
+        'payment_confirmed_at',
         'rejected_at',
         'rejection_reason',
     ];
@@ -31,10 +35,12 @@ class Investment extends Model
     {
         return [
             'amount' => 'decimal:2',
+            'shares' => 'integer',
             'status' => InvestmentStatus::class,
             'start_date' => 'date',
             'end_date' => 'date',
             'approved_at' => 'datetime',
+            'payment_confirmed_at' => 'datetime',
             'rejected_at' => 'datetime',
         ];
     }

@@ -6,6 +6,7 @@ enum DocumentCategory: string
 {
     case Contract = 'contract';
     case Kyc = 'kyc';
+    case PaymentReceipt = 'payment_receipt';
     case PayoutStatement = 'payout_statement';
     case PortfolioStatement = 'portfolio_statement';
     case Tax = 'tax';
@@ -16,6 +17,7 @@ enum DocumentCategory: string
         return match ($this) {
             self::Contract => 'العقود',
             self::Kyc => 'مستندات التحقق',
+            self::PaymentReceipt => 'إيصالات الدفع',
             self::PayoutStatement => 'كشوف التوزيعات',
             self::PortfolioStatement => 'كشوف المحفظة',
             self::Tax => 'المستندات الضريبية',
@@ -31,6 +33,7 @@ enum DocumentCategory: string
         return match ($this) {
             self::Contract => 'primary',
             self::Kyc => 'info',
+            self::PaymentReceipt => 'success',
             self::PayoutStatement => 'success',
             self::PortfolioStatement => 'primary',
             self::Tax => 'warning',
@@ -43,6 +46,7 @@ enum DocumentCategory: string
         return match ($this) {
             self::Contract => 'ti-file-text',
             self::Kyc => 'ti-id-badge-2',
+            self::PaymentReceipt => 'ti-receipt-2',
             self::PayoutStatement => 'ti-receipt',
             self::PortfolioStatement => 'ti-chart-pie',
             self::Tax => 'ti-file-invoice',

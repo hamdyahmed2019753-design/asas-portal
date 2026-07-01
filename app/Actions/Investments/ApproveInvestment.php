@@ -29,13 +29,15 @@ class ApproveInvestment
         private readonly PayoutScheduleGenerator $generator,
     ) {}
 
-    public function execute(Investment $investment): Investment
+    public function execute(Investment $investment, ?string $paymentProofPath = null): Investment
     {
-        if ($investment->status !== InvestmentStatus::Pending) {
+        // Approvable from a submitted-payment subscription or a legacy pending
+        // investment (admin-created / interest-converted).
+        if (! in_array($investment->status, [InvestmentStatus::PaymentSubmitted, InvestmentStatus::Pending], true)) {
             throw InvestmentAlreadyProcessedException::forInvestment($investment->id);
         }
 
-        return DB::transaction(function () use ($investment): Investment {
+        return DB::transaction(function () use ($investment, $paymentProofPath): Investment {
             $today = now()->startOfDay();
 
             $investment->forceFill([
@@ -43,6 +45,8 @@ class ApproveInvestment
                 'start_date' => $today,
                 'end_date' => $today->copy()->addMonths((int) $investment->contract->duration_months),
                 'approved_at' => now(),
+                'payment_confirmed_at' => now(),
+                'payment_proof_path' => $paymentProofPath ?? $investment->payment_proof_path,
             ])->save();
 
             // Reload so casts (start_date as Carbon date) are clean for the generator.

@@ -75,52 +75,66 @@
                 <span>وثّق بريدك الإلكتروني للمشاركة في هذه الفرصة. يمكنك تصفّح كل العقود الآن.</span>
             </div>
             <div style="margin-top:12px;"><a href="{{ route('verification.notice') }}" class="ip-btn">توثيق البريد الإلكتروني</a></div>
-        @elseif ($investment)
-            <div class="ip-banner ip-banner--success" style="margin:0;">
-                <span class="ip-banner__icon"><i class="ti ti-circle-check"></i></span>
-                <span>أنت مشارك في هذا العقد بالفعل.</span>
-            </div>
-            <div class="ip-kv__row" style="border-bottom:0; padding:10px 0 0;">
-                <span class="ip-kv__label">حالة مشاركتك</span>
-                <x-ip.status-pill :color="$investment->status_color" :label="$investment->status_label" />
-            </div>
-            <div style="margin-top:12px;"><a href="{{ route('portal.investments.show', $investment) }}" class="ip-btn">عرض مشاركتي</a></div>
+        @elseif ($investment && $investment->status->value !== 'rejected')
+            @php $st = $investment->status->value; @endphp
+            @if ($st === 'pending_payment')
+                <div class="ip-banner ip-banner--warning" style="margin:0;">
+                    <span class="ip-banner__icon"><i class="ti ti-clock-dollar"></i></span>
+                    <span>لم يكتمل تحويلك بعد — أكمل رفع الإيصال لإتمام اشتراكك.</span>
+                </div>
+                <div style="margin-top:12px;"><a href="{{ route('portal.investments.transfer', $investment) }}" class="ip-btn"><i class="ti ti-arrow-left"></i> أكمل التحويل</a></div>
+            @elseif ($st === 'payment_submitted')
+                <div class="ip-banner ip-banner--info" style="margin:0;">
+                    <span class="ip-banner__icon"><i class="ti ti-file-check"></i></span>
+                    <span>تم استلام إيصال تحويلك وهو قيد المراجعة والاعتماد.</span>
+                </div>
+                <div style="margin-top:12px;"><a href="{{ route('portal.investments.show', $investment) }}" class="ip-btn">عرض مشاركتي</a></div>
+            @else
+                <div class="ip-banner ip-banner--success" style="margin:0;">
+                    <span class="ip-banner__icon"><i class="ti ti-circle-check"></i></span>
+                    <span>أنت مشارك في هذا العقد بالفعل.</span>
+                </div>
+                <div class="ip-kv__row" style="border-bottom:0; padding:10px 0 0;">
+                    <span class="ip-kv__label">حالة مشاركتك</span>
+                    <x-ip.status-pill :color="$investment->status_color" :label="$investment->status_label" />
+                </div>
+                <div style="margin-top:12px;"><a href="{{ route('portal.investments.show', $investment) }}" class="ip-btn">عرض مشاركتي</a></div>
+            @endif
         @elseif (! $canInvest)
             <div class="ip-banner ip-banner--warning" style="margin:0;">
                 <span class="ip-banner__icon"><i class="ti ti-lock"></i></span>
-                <span>يجب اكتمال التحقق من هويتك (KYC) قبل إبداء الاهتمام أو المشاركة.</span>
+                <span>يجب اكتمال التحقق من هويتك (KYC) قبل المشاركة في العقد.</span>
             </div>
             <div style="margin-top:12px;"><a href="{{ route('portal.profile') }}" class="ip-btn">عرض حالة التحقق</a></div>
-        @elseif ($interest && in_array($interest->status->value, ['pending', 'contacted'], true))
-            <div class="ip-kv__row" style="border-bottom:0; padding:0;">
-                <span class="ip-kv__label">حالة طلب اهتمامك</span>
-                <x-ip.status-pill :color="$interest->status_color" :label="$interest->status_label" />
-            </div>
-            <p class="ip-note" style="margin-top:10px;">أبديتَ اهتمامك بهذا العقد بتاريخ {{ $interest->created_at?->format('Y-m-d') }}. سنتواصل معك قريبًا.</p>
+        @elseif (! $subscribable)
+            <p class="ip-note" style="margin:0;">هذا العقد غير متاح للاشتراك المباشر حاليًا.</p>
         @else
-            <div x-data="{ open: false }">
-                <button type="button" class="ip-btn" @click="open = true">إبداء اهتمام</button>
+            <div x-data="{ open: false, shares: {{ $shareBounds['min'] }}, price: {{ (float) $contract->share_price }},
+                           get amount() { return (this.shares > 0 ? this.shares : 0) * this.price; } }">
+                <button type="button" class="ip-btn" @click="open = true"><i class="ti ti-box"></i> اشتراك في العقد</button>
 
-                {{-- Interest modal --}}
+                {{-- Subscribe modal (no @click.outside on .ip-modal — backdrop handles it) --}}
                 <template x-if="open">
                     <div>
                         <div class="ip-drawer-backdrop" @click="open = false"></div>
                         <div class="ip-modal">
                             <div class="ip-modal__head">
-                                <span class="ip-card__title" style="font-size:16px;">إبداء اهتمام بـ «{{ $contract->title }}»</span>
+                                <span class="ip-card__title" style="font-size:16px;">اشتراك في «{{ $contract->title }}»</span>
                                 <button type="button" class="ip-iconbtn" @click="open = false" aria-label="إغلاق"><i class="ti ti-x"></i></button>
                             </div>
-                            <form method="POST" action="{{ route('portal.contracts.interest', $contract) }}">
+                            <form method="POST" action="{{ route('portal.contracts.subscribe', $contract) }}">
                                 @csrf
                                 <div class="ip-form-group">
-                                    <label class="ip-label" for="notes">ملاحظات (اختياري)</label>
-                                    <textarea id="notes" name="notes" rows="3" class="ip-input" placeholder="أخبرنا بما يهمّك حول هذه الفرصة...">{{ old('notes') }}</textarea>
+                                    <label class="ip-label" for="shares">عدد الحصص <span class="ip-note">(سعر الحصة {{ money($contract->share_price) }})</span></label>
+                                    <input type="number" id="shares" name="shares" class="ip-input" x-model.number="shares"
+                                           min="{{ $shareBounds['min'] }}" @if ($shareBounds['max']) max="{{ $shareBounds['max'] }}" @endif step="1" required>
+                                    @error('shares')<div class="ip-note" style="color:var(--ip-danger-700); margin-top:6px;">{{ $message }}</div>@enderror
                                 </div>
-                                <label class="ip-checkrow" style="margin-bottom:16px;">
-                                    <input type="checkbox" name="confirm" value="1" class="ip-checkbox" required>
-                                    <span>أؤكد رغبتي في إبداء الاهتمام بهذه الفرصة الاستثمارية.</span>
-                                </label>
-                                <button type="submit" class="ip-btn ip-btn--block">إرسال الطلب</button>
+                                <div class="ip-kv__row" style="border-bottom:0; padding:4px 0 12px;">
+                                    <span class="ip-kv__label">المبلغ الإجمالي</span>
+                                    <span class="ip-kv__value"><span x-text="amount.toLocaleString('en-US')"></span> ر.س</span>
+                                </div>
+                                <button type="submit" class="ip-btn ip-btn--block">متابعة إلى التحويل</button>
                             </form>
                         </div>
                     </div>

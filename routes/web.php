@@ -17,6 +17,7 @@ use App\Http\Controllers\Portal\PayoutController;
 use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\Portal\PortfolioController;
 use App\Http\Controllers\Portal\SettingsController;
+use App\Http\Controllers\Portal\SubscriptionController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -46,6 +47,10 @@ Route::middleware(['auth', 'verified', 'investor'])->prefix('portal')->name('por
     Route::get('/investments', [InvestmentController::class, 'index'])->name('investments');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
 
+    // Direct bank-transfer subscription (owner-only via InvestmentPolicy).
+    Route::get('/investments/{investment}/transfer', [SubscriptionController::class, 'transfer'])->name('investments.transfer');
+    Route::post('/investments/{investment}/receipt', [SubscriptionController::class, 'submitReceipt'])->name('investments.receipt');
+
     // Generated PDF documents (owner-only via InvestmentPolicy).
     Route::get('/investments/{investment}/contract', [InvestmentDocumentController::class, 'contract'])->name('investments.contract');
     Route::get('/investments/{investment}/statement', [InvestmentDocumentController::class, 'statement'])->name('investments.statement');
@@ -64,6 +69,7 @@ Route::middleware(['auth', 'verified', 'investor'])->prefix('portal')->name('por
     Route::post('/kyc/resubmit', [KycController::class, 'resubmit'])->name('kyc.resubmit.store');
     Route::get('/contracts', [ContractController::class, 'index'])->name('contracts');
     Route::post('/contracts/{contract}/interest', [ContractInterestController::class, 'store'])->name('contracts.interest');
+    Route::post('/contracts/{contract}/subscribe', [SubscriptionController::class, 'store'])->name('contracts.subscribe');
     Route::get('/documents', [DocumentsController::class, 'index'])->name('documents');
     Route::get('/news', [NewsController::class, 'index'])->name('news');
     Route::get('/profile', [App\Http\Controllers\Portal\ProfileController::class, 'index'])->name('profile');

@@ -7,6 +7,7 @@ use App\Enums\PayoutType;
 use App\Models\Investment;
 use App\Models\Payout;
 use App\Models\User;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -97,7 +98,7 @@ class PortfolioService
      * eager-loaded; scheduled profit amounts are still manual (null) at this
      * stage and surface as "to be set".
      *
-     * @return array{items: Collection<int, Payout>, total: float, nextDate: ?\Illuminate\Support\Carbon}
+     * @return array{items: Collection<int, Payout>, total: float, nextDate: ?Carbon}
      */
     private function upcomingCashflow(User $user, int $limit = 6): array
     {

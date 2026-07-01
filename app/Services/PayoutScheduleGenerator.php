@@ -6,6 +6,7 @@ use App\Enums\PayoutStatus;
 use App\Enums\PayoutType;
 use App\Models\Investment;
 use App\Models\Payout;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
 
 /**
@@ -32,17 +33,37 @@ class PayoutScheduleGenerator
 
         $payouts = collect();
 
-        // Evenly-spaced profit payouts.
-        for ($i = 1; $i <= $count; $i++) {
-            $monthsOffset = (int) round($duration * $i / $count);
+        // Prefer the admin-defined absolute distribution dates on the contract;
+        // otherwise fall back to even spacing across the contract duration.
+        $schedule = collect($contract->payout_schedule ?? [])
+            ->filter()
+            ->map(fn ($date) => Carbon::parse($date))
+            ->sort()
+            ->values();
 
-            $payouts->push($investment->payouts()->create([
-                'type' => PayoutType::Profit,
-                'sequence' => $i,
-                'due_date' => $start->copy()->addMonths($monthsOffset),
-                'amount' => null, // manual — entered by admin before payment
-                'status' => PayoutStatus::Scheduled,
-            ]));
+        if ($schedule->isNotEmpty()) {
+            foreach ($schedule as $i => $date) {
+                $payouts->push($investment->payouts()->create([
+                    'type' => PayoutType::Profit,
+                    'sequence' => $i + 1,
+                    'due_date' => $date,
+                    'amount' => null, // manual — entered by admin before payment
+                    'status' => PayoutStatus::Scheduled,
+                ]));
+            }
+        } else {
+            // Evenly-spaced profit payouts.
+            for ($i = 1; $i <= $count; $i++) {
+                $monthsOffset = (int) round($duration * $i / $count);
+
+                $payouts->push($investment->payouts()->create([
+                    'type' => PayoutType::Profit,
+                    'sequence' => $i,
+                    'due_date' => $start->copy()->addMonths($monthsOffset),
+                    'amount' => null, // manual — entered by admin before payment
+                    'status' => PayoutStatus::Scheduled,
+                ]));
+            }
         }
 
         // Single capital-return payout at the end of the contract.

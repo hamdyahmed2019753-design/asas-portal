@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Actions\Investments\ApproveInvestment;
 use App\Models\Contract;
+use App\Models\ContractInterest;
 use App\Models\Investment;
 use App\Models\User;
 use App\Services\Portal\InvestmentPortalService;
@@ -195,7 +196,7 @@ class PortalInvestmentsTest extends TestCase
     {
         $user = $this->member();
         $contract = $this->contract();
-        \App\Models\ContractInterest::create([
+        ContractInterest::create([
             'user_id' => $user->id, 'contract_id' => $contract->id, 'status' => 'pending',
         ]);
         $investment = $this->investment($user, $contract);

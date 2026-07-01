@@ -85,6 +85,12 @@ class ContractResource extends Resource
                         ->minValue(0)
                         ->gte('min_amount')
                         ->suffix('ر.س'),
+                    Forms\Components\TextInput::make('share_price')
+                        ->label('سعر الحصة')
+                        ->numeric()
+                        ->minValue(0)
+                        ->suffix('ر.س')
+                        ->helperText('مبلغ الاشتراك = عدد الحصص × سعر الحصة. مطلوب لتفعيل الاشتراك المباشر.'),
                     Forms\Components\TextInput::make('expected_return')
                         ->label('نسبة العائد المتوقعة')
                         ->numeric()
@@ -105,6 +111,19 @@ class ContractResource extends Resource
                         ->minValue(1),
                 ])
                 ->columns(2),
+
+            Forms\Components\Section::make('تواريخ التوزيعات')
+                ->description('حدّد مواعيد توزيعات الأرباح — تُطبَّق على كل مشاركة معتمدة في هذا العقد. اتركها فارغة للتوزيع التلقائي المتساوي حسب عدد التوزيعات.')
+                ->schema([
+                    Forms\Components\Repeater::make('payout_schedule')
+                        ->label('مواعيد التوزيع')
+                        ->simple(
+                            Forms\Components\DatePicker::make('date')->required()
+                        )
+                        ->addActionLabel('إضافة تاريخ')
+                        ->defaultItems(0)
+                        ->columnSpanFull(),
+                ]),
 
             Forms\Components\Section::make('التوقيت')
                 ->schema([

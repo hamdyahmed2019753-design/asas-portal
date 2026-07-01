@@ -77,6 +77,13 @@ class ManageSettings extends Page implements HasForms
         'contact_whatsapp' => 'contact.whatsapp',
         'general_company_address' => 'general.company_address',
         'contact_google_maps_url' => 'contact.google_maps_url',
+        // Bank accounts (transfer subscription)
+        'bank_1_name' => 'bank.1.name',
+        'bank_1_account_name' => 'bank.1.account_name',
+        'bank_1_iban' => 'bank.1.iban',
+        'bank_2_name' => 'bank.2.name',
+        'bank_2_account_name' => 'bank.2.account_name',
+        'bank_2_iban' => 'bank.2.iban',
         // Social
         'social_facebook' => 'social.facebook',
         'social_twitter' => 'social.twitter',
@@ -164,6 +171,8 @@ class ManageSettings extends Page implements HasForms
             'general_site_name' => 'أساس',
             'general_timezone' => 'Asia/Riyadh',
             'general_default_language' => 'ar',
+            'bank_1_name' => 'البنك الأهلي السعودي',
+            'bank_2_name' => 'مصرف الإنماء',
             'mail_mailer' => 'smtp',
             'mail_port' => 587,
             'mail_encryption' => 'tls',
@@ -337,6 +346,19 @@ class ManageSettings extends Page implements HasForms
                             TextInput::make('contact_google_maps_url')->label('رابط خرائط جوجل')->url()->maxLength(255),
                             Textarea::make('general_company_address')->label('عنوان الشركة')->rows(2)->columnSpanFull(),
                         ])->columns(2),
+
+                        Tab::make('الحسابات البنكية')->icon('heroicon-o-building-library')->schema([
+                            Section::make('الحساب الأول')->schema([
+                                TextInput::make('bank_1_name')->label('اسم البنك')->maxLength(255),
+                                TextInput::make('bank_1_account_name')->label('اسم الحساب')->maxLength(255),
+                                TextInput::make('bank_1_iban')->label('الآيبان (IBAN)')->maxLength(34)->placeholder('SA00 0000 0000 0000 0000 0000'),
+                            ])->columns(3),
+                            Section::make('الحساب الثاني')->schema([
+                                TextInput::make('bank_2_name')->label('اسم البنك')->maxLength(255),
+                                TextInput::make('bank_2_account_name')->label('اسم الحساب')->maxLength(255),
+                                TextInput::make('bank_2_iban')->label('الآيبان (IBAN)')->maxLength(34)->placeholder('SA00 0000 0000 0000 0000 0000'),
+                            ])->columns(3),
+                        ]),
 
                         Tab::make('التواصل الاجتماعي')->icon('heroicon-o-share')->schema([
                             TextInput::make('social_facebook')->label('Facebook')->url()->maxLength(255),

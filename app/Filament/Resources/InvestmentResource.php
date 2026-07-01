@@ -8,6 +8,7 @@ use App\Enums\InvestmentStatus;
 use App\Exceptions\InvestmentAlreadyProcessedException;
 use App\Filament\Resources\InvestmentResource\Pages;
 use App\Filament\Resources\InvestmentResource\RelationManagers;
+use App\Models\Document;
 use App\Models\Investment;
 use Filament\Forms;
 use Filament\Forms\Form;
@@ -16,6 +17,8 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\Facades\URL;
+use Illuminate\Support\HtmlString;
 
 class InvestmentResource extends Resource
 {
@@ -47,6 +50,27 @@ class InvestmentResource extends Resource
         return collect(InvestmentStatus::cases())
             ->mapWithKeys(fn (InvestmentStatus $status) => [$status->value => $status->label()])
             ->all();
+    }
+
+    /**
+     * Signed download link to the investor's uploaded transfer receipt (the
+     * receipt is a private Document, downloadable by admins via its policy).
+     */
+    private static function receiptLink(Investment $record): HtmlString
+    {
+        if (blank($record->receipt_path)) {
+            return new HtmlString('<span style="color:#9ba3a3;">لا يوجد إيصال مرفوع</span>');
+        }
+
+        $document = Document::where('path', $record->receipt_path)->latest()->first();
+
+        if ($document === null) {
+            return new HtmlString('<span style="color:#9ba3a3;">الإيصال غير متاح</span>');
+        }
+
+        $url = URL::temporarySignedRoute('documents.download', now()->addMinutes(15), ['document' => $document]);
+
+        return new HtmlString('<a href="'.e($url).'" target="_blank" style="color:#15A878;text-decoration:underline;">تحميل إيصال التحويل</a>');
     }
 
     public static function form(Form $form): Form
@@ -95,6 +119,21 @@ class InvestmentResource extends Resource
                         ->content(fn (?Investment $record): string => $record?->rejection_reason ?? '—'),
                 ])
                 ->columns(2)
+                ->visibleOn(['edit', 'view']),
+
+            Forms\Components\Section::make('الدفع والحصص')
+                ->schema([
+                    Forms\Components\Placeholder::make('shares')
+                        ->label('عدد الحصص')
+                        ->content(fn (?Investment $record): string => (string) ($record?->shares ?? '—')),
+                    Forms\Components\Placeholder::make('receipt')
+                        ->label('إيصال المستثمر')
+                        ->content(fn (?Investment $record): HtmlString => $record ? self::receiptLink($record) : new HtmlString('—')),
+                    Forms\Components\Placeholder::make('payment_confirmed_at')
+                        ->label('تاريخ تأكيد السداد')
+                        ->content(fn (?Investment $record): string => $record?->payment_confirmed_at?->format('Y-m-d H:i') ?? '—'),
+                ])
+                ->columns(3)
                 ->visibleOn(['edit', 'view']),
 
             Forms\Components\Section::make('التواريخ')
@@ -181,17 +220,27 @@ class InvestmentResource extends Resource
                     ->icon('heroicon-o-check-circle')
                     ->color('success')
                     ->authorize('update')
-                    ->visible(fn (Investment $record): bool => $record->status === InvestmentStatus::Pending)
-                    ->requiresConfirmation()
-                    ->modalHeading('اعتماد المشاركة')
-                    ->modalDescription('سيتم توليد جدول التوزيعات ومنح المستخدم دور «مستثمر». لا يمكن التراجع.')
+                    ->visible(fn (Investment $record): bool => in_array($record->status->value, InvestmentStatus::awaitingApproval(), true))
+                    ->modalHeading('اعتماد المشاركة وتأكيد السداد')
+                    ->modalDescription('راجِع إيصال المستثمر، وأرفق إثبات الدفع إن رغبت. عند الاعتماد يُثبَّت السداد ويُولَّد جدول التوزيعات ويُمنح المستخدم دور «مستثمر». لا يمكن التراجع.')
                     ->modalSubmitActionLabel('اعتماد')
-                    ->action(function (Investment $record): void {
+                    ->form([
+                        Forms\Components\Placeholder::make('receipt_link')
+                            ->label('إيصال المستثمر')
+                            ->content(fn (Investment $record): HtmlString => self::receiptLink($record)),
+                        Forms\Components\FileUpload::make('payment_proof')
+                            ->label('إثبات الدفع (اختياري)')
+                            ->disk('local')
+                            ->directory('payment-proofs')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->maxSize(5120),
+                    ])
+                    ->action(function (Investment $record, array $data): void {
                         try {
-                            app(ApproveInvestment::class)->execute($record);
+                            app(ApproveInvestment::class)->execute($record, $data['payment_proof'] ?? null);
                             Notification::make()
                                 ->title('تم اعتماد المشاركة بنجاح')
-                                ->body('تم توليد جدول التوزيعات.')
+                                ->body('تم تأكيد السداد وتوليد جدول التوزيعات.')
                                 ->success()
                                 ->send();
                         } catch (InvestmentAlreadyProcessedException) {
@@ -208,7 +257,7 @@ class InvestmentResource extends Resource
                     ->icon('heroicon-o-x-circle')
                     ->color('danger')
                     ->authorize('update')
-                    ->visible(fn (Investment $record): bool => $record->status === InvestmentStatus::Pending)
+                    ->visible(fn (Investment $record): bool => ! in_array($record->status, [InvestmentStatus::Approved, InvestmentStatus::Rejected], true))
                     ->modalHeading('رفض المشاركة')
                     ->modalSubmitActionLabel('رفض')
                     ->form([

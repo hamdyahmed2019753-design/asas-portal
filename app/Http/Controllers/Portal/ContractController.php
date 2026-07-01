@@ -5,9 +5,9 @@ namespace App\Http\Controllers\Portal;
 use App\Enums\ContractStatus;
 use App\Http\Controllers\Controller;
 use App\Models\Contract;
-use App\Services\Portal\ContractInterestService;
 use App\Services\Portal\InvestmentPortalService;
 use App\Services\Portal\KycService;
+use App\Services\Portal\SubscriptionService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -51,7 +51,7 @@ class ContractController extends Controller
         ]);
     }
 
-    public function show(Request $request, KycService $kyc, ContractInterestService $interests, InvestmentPortalService $investments, string $contract): View
+    public function show(Request $request, KycService $kyc, InvestmentPortalService $investments, SubscriptionService $subscriptions, string $contract): View
     {
         // Route-model binding scoped to publicVisible() — 404 for anything hidden.
         $model = Contract::publicVisible()->findOrFail($contract);
@@ -61,8 +61,9 @@ class ContractController extends Controller
         return view('portal.contracts.show', [
             'contract' => $model,
             'canInvest' => $user !== null && $kyc->canInvest($user),
-            'interest' => $user !== null ? $interests->forContract($user, $model) : null,
             'investment' => $user !== null ? $investments->forContract($user, $model) : null,
+            'subscribable' => $subscriptions->subscribable($model),
+            'shareBounds' => $subscriptions->shareBounds($model),
         ]);
     }
 }

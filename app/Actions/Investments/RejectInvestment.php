@@ -25,7 +25,9 @@ class RejectInvestment
 {
     public function execute(Investment $investment, ?string $reason = null): Investment
     {
-        if ($investment->status !== InvestmentStatus::Pending) {
+        // Anything not already approved/rejected may be rejected (awaiting-payment,
+        // submitted, or legacy pending).
+        if (in_array($investment->status, [InvestmentStatus::Approved, InvestmentStatus::Rejected], true)) {
             throw InvestmentAlreadyProcessedException::forInvestment($investment->id);
         }
 
