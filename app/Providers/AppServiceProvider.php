@@ -79,6 +79,7 @@ class AppServiceProvider extends ServiceProvider
                     ['label' => 'محفظتي', 'route' => 'portal.portfolio'],
                     ['label' => 'مشاركاتي', 'route' => 'portal.investments'],
                     ['label' => 'التوزيعات', 'route' => 'portal.payouts'],
+                    ['label' => 'رصيدي', 'route' => 'portal.wallet'],
                     ['label' => 'مستنداتي', 'route' => 'portal.documents'],
                     ['label' => 'العقود', 'route' => 'portal.contracts'],
                     ['label' => 'الأخبار', 'route' => 'portal.news'],

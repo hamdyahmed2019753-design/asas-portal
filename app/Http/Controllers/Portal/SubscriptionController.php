@@ -10,6 +10,7 @@ use App\Models\Contract;
 use App\Models\Investment;
 use App\Services\Portal\InvestmentPortalService;
 use App\Services\Portal\SubscriptionService;
+use App\Services\Portal\WalletService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\View\View;
 
@@ -21,7 +22,7 @@ class SubscriptionController extends Controller
 {
     public function __construct(private readonly SubscriptionService $service) {}
 
-    public function store(SubscribeRequest $request, Contract $contract, InvestmentPortalService $investments): RedirectResponse
+    public function store(SubscribeRequest $request, Contract $contract, InvestmentPortalService $investments, WalletService $wallet): RedirectResponse
     {
         $this->authorize('create', Investment::class); // KYC-approved investors only
         abort_unless($this->service->subscribable($contract), 404);
@@ -35,7 +36,19 @@ class SubscriptionController extends Controller
             );
         }
 
-        $investment = $this->service->subscribe($request->user(), $contract, (int) $request->validated('shares'));
+        $shares = (int) $request->validated('shares');
+        $amount = round((float) $contract->share_price * $shares, 2);
+
+        // Reinvest from the wallet when requested and the balance covers it →
+        // straight to a pending investment (no bank transfer / receipt).
+        if ($request->input('method') === 'wallet' && $wallet->balance($request->user()) >= $amount) {
+            $investment = $this->service->subscribeFromWallet($request->user(), $contract, $shares);
+
+            return redirect()->route('portal.investments.show', $investment)
+                ->with('status', 'تم إنشاء مشاركتك من رصيدك وهي بانتظار الاعتماد.');
+        }
+
+        $investment = $this->service->subscribe($request->user(), $contract, $shares);
 
         return redirect()->route('portal.investments.transfer', $investment);
     }

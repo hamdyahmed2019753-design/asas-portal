@@ -6,11 +6,14 @@ use App\Actions\Admin\NotifyAdmins;
 use App\Enums\AdminNotificationCategory;
 use App\Enums\AdminNotificationPriority;
 use App\Enums\InvestmentStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\WalletTransactionReason;
 use App\Exceptions\InvestmentAlreadyProcessedException;
 use App\Filament\Resources\InvestmentResource;
 use App\Models\Investment;
 use App\Notifications\Admin\AdminNotification;
 use App\Notifications\InvestmentRejectedNotification;
+use App\Services\Portal\WalletService;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -23,6 +26,8 @@ use Illuminate\Support\Facades\DB;
  */
 class RejectInvestment
 {
+    public function __construct(private readonly WalletService $wallet) {}
+
     public function execute(Investment $investment, ?string $reason = null): Investment
     {
         // Anything not already approved/rejected may be rejected (awaiting-payment,
@@ -37,6 +42,17 @@ class RejectInvestment
                 'rejection_reason' => $reason,
                 'rejected_at' => now(),
             ])->save();
+
+            // Wallet-funded subscription rejected → return the funds to the wallet.
+            if ($investment->payment_method === PaymentMethod::Wallet) {
+                $this->wallet->credit(
+                    $investment->user,
+                    (float) $investment->amount,
+                    WalletTransactionReason::ReinvestmentRefund,
+                    $investment,
+                    'إلغاء إعادة استثمار — مشاركة #'.$investment->id,
+                );
+            }
 
             $investment->loadMissing('contract');
             $investment->user->notify(new InvestmentRejectedNotification($investment, $reason));

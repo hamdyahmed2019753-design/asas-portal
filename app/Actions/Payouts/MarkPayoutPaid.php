@@ -7,12 +7,14 @@ use App\Enums\AdminNotificationCategory;
 use App\Enums\AdminNotificationPriority;
 use App\Enums\PayoutStatus;
 use App\Enums\PayoutType;
+use App\Enums\WalletTransactionReason;
 use App\Exceptions\PayoutAlreadyPaidException;
 use App\Exceptions\PayoutAmountMissingException;
 use App\Filament\Resources\PayoutResource;
 use App\Models\Payout;
 use App\Notifications\Admin\AdminNotification;
 use App\Notifications\PayoutPaidNotification;
+use App\Services\Portal\WalletService;
 
 /**
  * Marks a payout as paid (a manual confirmation — no real money movement).
@@ -23,7 +25,9 @@ use App\Notifications\PayoutPaidNotification;
  */
 class MarkPayoutPaid
 {
-    public function execute(Payout $payout): Payout
+    public function __construct(private readonly WalletService $wallet) {}
+
+    public function execute(Payout $payout, ?string $receiptPath = null): Payout
     {
         if ($payout->status === PayoutStatus::Paid) {
             throw PayoutAlreadyPaidException::forPayout($payout->id);
@@ -36,9 +40,22 @@ class MarkPayoutPaid
         $payout->forceFill([
             'status' => PayoutStatus::Paid,
             'paid_at' => now(),
+            'receipt_path' => $receiptPath ?? $payout->receipt_path,
         ])->save();
 
         $payout->loadMissing('investment.user');
+
+        // Capital return → credited to the investor's cash wallet (not the bank).
+        if ($payout->type === PayoutType::Capital && $payout->investment?->user !== null) {
+            $this->wallet->credit(
+                $payout->investment->user,
+                (float) $payout->amount,
+                WalletTransactionReason::CapitalReturn,
+                $payout,
+                'استرداد رأس المال — مشاركة #'.$payout->investment_id,
+            );
+        }
+
         $payout->investment?->user?->notify(new PayoutPaidNotification($payout));
 
         $investorName = $payout->investment?->user?->name ?? '—';

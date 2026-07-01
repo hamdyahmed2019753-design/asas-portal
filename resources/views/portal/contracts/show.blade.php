@@ -109,7 +109,7 @@
         @elseif (! $subscribable)
             <p class="ip-note" style="margin:0;">هذا العقد غير متاح للاشتراك المباشر حاليًا.</p>
         @else
-            <div x-data="{ open: false, shares: {{ $shareBounds['min'] }}, price: {{ (float) $contract->share_price }},
+            <div x-data="{ open: false, shares: {{ $shareBounds['min'] }}, price: {{ (float) $contract->share_price }}, wallet: {{ (float) ($walletBalance ?? 0) }},
                            get amount() { return (this.shares > 0 ? this.shares : 0) * this.price; } }">
                 <button type="button" class="ip-btn" @click="open = true"><i class="ti ti-box"></i> اشتراك في العقد</button>
 
@@ -122,8 +122,9 @@
                                 <span class="ip-card__title" style="font-size:16px;">اشتراك في «{{ $contract->title }}»</span>
                                 <button type="button" class="ip-iconbtn" @click="open = false" aria-label="إغلاق"><i class="ti ti-x"></i></button>
                             </div>
-                            <form method="POST" action="{{ route('portal.contracts.subscribe', $contract) }}">
+                            <form method="POST" action="{{ route('portal.contracts.subscribe', $contract) }}" x-ref="subForm">
                                 @csrf
+                                <input type="hidden" name="method" x-ref="method" value="bank_transfer">
                                 <div class="ip-form-group">
                                     <label class="ip-label" for="shares">عدد الحصص <span class="ip-note">(سعر الحصة {{ money($contract->share_price) }})</span></label>
                                     <input type="number" id="shares" name="shares" class="ip-input" x-model.number="shares"
@@ -134,7 +135,14 @@
                                     <span class="ip-kv__label">المبلغ الإجمالي</span>
                                     <span class="ip-kv__value"><span x-text="amount.toLocaleString('en-US')"></span> ر.س</span>
                                 </div>
-                                <button type="submit" class="ip-btn ip-btn--block">متابعة إلى التحويل</button>
+                                <button type="submit" class="ip-btn ip-btn--block">متابعة إلى التحويل البنكي</button>
+                                @if (($walletBalance ?? 0) > 0)
+                                    <button type="button" x-show="wallet >= amount && amount > 0" class="ip-btn ip-btn--block"
+                                            style="margin-top:8px; background:transparent; color:var(--ip-primary); border:1px solid var(--ip-border);"
+                                            @click="$refs.method.value = 'wallet'; $refs.subForm.submit()">
+                                        <i class="ti ti-wallet"></i> الدفع من رصيدي (المتاح {{ money($walletBalance) }})
+                                    </button>
+                                @endif
                             </form>
                         </div>
                     </div>

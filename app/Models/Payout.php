@@ -24,6 +24,7 @@ class Payout extends Model
         'status',
         'paid_at',
         'notes',
+        'receipt_path',
     ];
 
     protected function casts(): array

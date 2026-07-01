@@ -18,6 +18,8 @@ use App\Http\Controllers\Portal\PortalDashboardController;
 use App\Http\Controllers\Portal\PortfolioController;
 use App\Http\Controllers\Portal\SettingsController;
 use App\Http\Controllers\Portal\SubscriptionController;
+use App\Http\Controllers\Portal\WalletController;
+use App\Http\Controllers\Portal\WithdrawalController;
 use App\Http\Controllers\ProfileController;
 use Illuminate\Support\Facades\Route;
 
@@ -44,6 +46,10 @@ Route::middleware(['auth', 'verified', 'investor'])->prefix('portal')->name('por
     Route::post('/onboarding/documents', [OnboardingController::class, 'storeDocuments'])->name('onboarding.documents');
     Route::post('/onboarding/terms', [OnboardingController::class, 'storeTerms'])->name('onboarding.terms');
     Route::get('/portfolio', [PortfolioController::class, 'index'])->name('portfolio');
+    Route::get('/wallet', [WalletController::class, 'index'])->name('wallet');
+    Route::get('/wallet/withdraw', [WithdrawalController::class, 'create'])->name('wallet.withdraw');
+    Route::post('/wallet/withdraw', [WithdrawalController::class, 'store'])->name('wallet.withdraw.store');
+    Route::get('/withdrawals/{withdrawal}/receipt', [WithdrawalController::class, 'receipt'])->name('withdrawals.receipt');
     Route::get('/investments', [InvestmentController::class, 'index'])->name('investments');
     Route::get('/investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
 
@@ -77,6 +83,7 @@ Route::middleware(['auth', 'verified', 'investor'])->prefix('portal')->name('por
     // Account settings & security center.
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings');
     Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
+    Route::patch('/settings/bank', [SettingsController::class, 'updateBankAccount'])->name('settings.bank');
     Route::put('/settings/password', [SettingsController::class, 'updatePassword'])->name('settings.password');
     Route::post('/settings/logout-others', [SettingsController::class, 'logoutOtherSessions'])->name('settings.logoutOthers');
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications');

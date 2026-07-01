@@ -8,6 +8,8 @@ use App\Enums\AdminNotificationPriority;
 use App\Enums\ContractStatus;
 use App\Enums\DocumentCategory;
 use App\Enums\InvestmentStatus;
+use App\Enums\PaymentMethod;
+use App\Enums\WalletTransactionReason;
 use App\Filament\Resources\InvestmentResource;
 use App\Models\Contract;
 use App\Models\Investment;
@@ -23,6 +25,8 @@ use Illuminate\Http\UploadedFile;
  */
 class SubscriptionService
 {
+    public function __construct(private readonly WalletService $wallet) {}
+
     /**
      * A contract accepts direct subscription only when it has a share price and
      * is open.
@@ -44,7 +48,40 @@ class SubscriptionService
             'shares' => $shares,
             'amount' => round((float) $contract->share_price * $shares, 2),
             'status' => InvestmentStatus::PendingPayment->value,
+            'payment_method' => PaymentMethod::BankTransfer->value,
         ]);
+    }
+
+    /**
+     * Reinvest from the wallet: debit the balance and create a pending investment
+     * (no bank transfer / receipt). The admin then approves to activate it.
+     */
+    public function subscribeFromWallet(User $user, Contract $contract, int $shares): Investment
+    {
+        $amount = round((float) $contract->share_price * $shares, 2);
+
+        $investment = $user->investments()->create([
+            'contract_id' => $contract->id,
+            'shares' => $shares,
+            'amount' => $amount,
+            'status' => InvestmentStatus::Pending->value, // funds already in-system → awaiting approval only
+            'payment_method' => PaymentMethod::Wallet->value,
+        ]);
+
+        $this->wallet->debit($user, $amount, WalletTransactionReason::Reinvestment, $investment, 'إعادة استثمار — عقد «'.$contract->title.'»');
+
+        NotifyAdmins::send(new AdminNotification(
+            title: 'اشتراك من الرصيد',
+            body: "استثمر «{$user->name}» ".money($amount).' من رصيده في عقد «'.$contract->title.'».',
+            category: AdminNotificationCategory::Investment,
+            priority: AdminNotificationPriority::High,
+            actor: $user,
+            target: $investment,
+            url: InvestmentResource::getUrl('index'),
+            actionLabel: 'مراجعة الطلب',
+        ));
+
+        return $investment;
     }
 
     /**

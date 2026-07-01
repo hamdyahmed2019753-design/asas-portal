@@ -132,6 +132,22 @@ class InvestorResource extends Resource
                 ->columns(2)
                 ->visibleOn(['edit', 'view']),
 
+            Forms\Components\Section::make('الحساب البنكي')
+                ->description('حساب المستثمر لاستلام الأرباح والمبالغ المسحوبة.')
+                ->schema([
+                    Forms\Components\Placeholder::make('bank_name')
+                        ->label('البنك')
+                        ->content(fn (?User $record): string => $record?->bank_name ?? '—'),
+                    Forms\Components\Placeholder::make('bank_account_name')
+                        ->label('اسم الحساب')
+                        ->content(fn (?User $record): string => $record?->bank_account_name ?? '—'),
+                    Forms\Components\Placeholder::make('bank_iban')
+                        ->label('الآيبان (IBAN)')
+                        ->content(fn (?User $record): string => $record?->bank_iban ?? '—'),
+                ])
+                ->columns(3)
+                ->visibleOn(['edit', 'view']),
+
             Forms\Components\Section::make('معلومات إضافية')
                 ->schema([
                     Forms\Components\Placeholder::make('roles')

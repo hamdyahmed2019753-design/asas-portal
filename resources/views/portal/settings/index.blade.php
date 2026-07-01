@@ -70,6 +70,38 @@
         </form>
     </x-ip.card>
 
+    {{-- Bank account (payout destination) --}}
+    <x-ip.section-header title="الحساب البنكي" />
+    <x-ip.card>
+        <p class="ip-note" style="margin:0 0 12px;">يُستخدم هذا الحساب لاستلام أرباحك والمبالغ المسحوبة من محفظتك.</p>
+        <form method="POST" action="{{ route('portal.settings.bank') }}">
+            @csrf
+            @method('PATCH')
+            <div class="ip-grid ip-grid--2">
+                <div class="ip-form-group">
+                    <label class="ip-label" for="bank_name">اسم البنك</label>
+                    <input id="bank_name" name="bank_name" type="text" value="{{ old('bank_name', $user->bank_name) }}" required
+                           class="ip-input @error('bank_name') ip-input--error @enderror">
+                    @error('bank_name')<div class="ip-field-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="ip-form-group">
+                    <label class="ip-label" for="bank_account_name">اسم صاحب الحساب</label>
+                    <input id="bank_account_name" name="bank_account_name" type="text" value="{{ old('bank_account_name', $user->bank_account_name) }}" required
+                           class="ip-input @error('bank_account_name') ip-input--error @enderror">
+                    @error('bank_account_name')<div class="ip-field-error">{{ $message }}</div>@enderror
+                </div>
+                <div class="ip-form-group" style="grid-column:1 / -1;">
+                    <label class="ip-label" for="bank_iban">الآيبان (IBAN)</label>
+                    <input id="bank_iban" name="bank_iban" type="text" dir="ltr" value="{{ old('bank_iban', $user->bank_iban) }}" required
+                           placeholder="SA0000000000000000000000"
+                           class="ip-input @error('bank_iban') ip-input--error @enderror">
+                    @error('bank_iban')<div class="ip-field-error">{{ $message }}</div>@enderror
+                </div>
+            </div>
+            <button type="submit" class="ip-btn" style="margin-top:6px;">حفظ الحساب البنكي</button>
+        </form>
+    </x-ip.card>
+
     {{-- Password --}}
     <x-ip.section-header title="تغيير كلمة المرور" />
     <x-ip.card>

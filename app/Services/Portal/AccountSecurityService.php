@@ -47,6 +47,21 @@ class AccountSecurityService
     }
 
     /**
+     * Update the investor's payout bank account (written via forceFill — these
+     * are financial fields kept out of $fillable).
+     *
+     * @param  array{bank_name: string, bank_account_name: string, bank_iban: string}  $data
+     */
+    public function updateBankAccount(User $user, array $data): void
+    {
+        $user->forceFill([
+            'bank_name' => $data['bank_name'],
+            'bank_account_name' => $data['bank_account_name'],
+            'bank_iban' => $data['bank_iban'],
+        ])->save();
+    }
+
+    /**
      * Set a new password (the current password is verified in the FormRequest).
      */
     public function changePassword(User $user, string $newPassword): void

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\InvestmentStatus;
+use App\Enums\PaymentMethod;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
@@ -22,6 +23,7 @@ class Investment extends Model
         'shares',
         'receipt_path',
         'payment_proof_path',
+        'payment_method',
         'status',
         'start_date',
         'end_date',
@@ -36,6 +38,7 @@ class Investment extends Model
         return [
             'amount' => 'decimal:2',
             'shares' => 'integer',
+            'payment_method' => PaymentMethod::class,
             'status' => InvestmentStatus::class,
             'start_date' => 'date',
             'end_date' => 'date',

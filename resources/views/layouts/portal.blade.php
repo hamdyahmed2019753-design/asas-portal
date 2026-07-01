@@ -122,13 +122,7 @@
         </div>
     @endif
 
-    @if ($companyName || $crNumber || $taxNumber)
-        <div class="ip-footer__legal">
-            @if ($companyName) {{ $companyName }} @endif
-            @if ($crNumber) · س.ت: {{ $crNumber }} @endif
-            @if ($taxNumber) · ض.ق: {{ $taxNumber }} @endif
-        </div>
-    @endif
+
 
     @include('partials.social-links')
 </footer>

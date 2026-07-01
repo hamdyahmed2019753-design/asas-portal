@@ -13,6 +13,16 @@
         <x-ip.kyc-progress :kyc="$kyc" />
     @endif
 
+    @if ($walletBalance > 0)
+        <div class="ip-banner ip-banner--success" style="justify-content:space-between;">
+            <span style="display:flex; align-items:center; gap:10px;">
+                <span class="ip-banner__icon"><i class="ti ti-wallet"></i></span>
+                <span>رصيدك النقدي: {{ money($walletBalance) }} — متاح للسحب أو إعادة الاستثمار.</span>
+            </span>
+            <a href="{{ route('portal.wallet') }}" class="ip-btn">إدارة الرصيد</a>
+        </div>
+    @endif
+
     @if ($pendingInterests > 0)
         <div class="ip-banner ip-banner--info" style="justify-content:space-between;">
             <span style="display:flex; align-items:center; gap:10px;">

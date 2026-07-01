@@ -18,6 +18,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Support\HtmlString;
 
 class PayoutResource extends Resource
 {
@@ -47,6 +48,24 @@ class PayoutResource extends Resource
     private static function isCapital(?Payout $record): bool
     {
         return $record !== null && $record->type === PayoutType::Capital;
+    }
+
+    /**
+     * The investor's payout bank account, shown to the admin before they confirm
+     * a profit transfer.
+     */
+    private static function investorBank(Payout $record): HtmlString
+    {
+        $user = $record->investment?->user;
+
+        if ($user === null || ! $user->hasBankAccount()) {
+            return new HtmlString('<span style="color:#e04b43;">لم يُضِف المستثمر حسابًا بنكيًا بعد</span>');
+        }
+
+        return new HtmlString(
+            e($user->bank_name).' — '.e($user->bank_account_name)
+            .'<br><span dir="ltr" style="font-family:monospace;">'.e($user->bank_iban).'</span>'
+        );
     }
 
     /**
@@ -205,13 +224,25 @@ class PayoutResource extends Resource
                     ->color('success')
                     ->authorize('update')
                     ->visible(fn (Payout $record): bool => $record->status !== PayoutStatus::Paid)
-                    ->requiresConfirmation()
                     ->modalHeading('تعليم التوزيعة كمدفوعة')
-                    ->modalDescription('تأكيد يدوي فقط — لا يوجد أي تحويل مالي في النظام.')
+                    ->modalDescription('حوّل المبلغ لحساب المستثمر البنكي وأرفق الإيصال. رأس المال يُقيَّد في محفظة المستثمر ولا يحتاج إيصالًا.')
                     ->modalSubmitActionLabel('تعليم كمدفوع')
-                    ->action(function (Payout $record): void {
+                    ->form([
+                        Forms\Components\Placeholder::make('investor_bank')
+                            ->label('حساب المستثمر البنكي')
+                            ->content(fn (Payout $record): HtmlString => self::investorBank($record)),
+                        Forms\Components\FileUpload::make('receipt')
+                            ->label('إيصال التحويل')
+                            ->helperText('إيصال تحويل الأرباح إلى حساب المستثمر (اختياري لرأس المال).')
+                            ->disk('local')
+                            ->directory('payout-receipts')
+                            ->acceptedFileTypes(['application/pdf', 'image/jpeg', 'image/png'])
+                            ->maxSize(5120)
+                            ->visible(fn (Payout $record): bool => ! self::isCapital($record)),
+                    ])
+                    ->action(function (Payout $record, array $data): void {
                         try {
-                            app(MarkPayoutPaid::class)->execute($record);
+                            app(MarkPayoutPaid::class)->execute($record, $data['receipt'] ?? null);
                             Notification::make()
                                 ->title('تم تعليم التوزيعة كمدفوعة')
                                 ->success()

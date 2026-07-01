@@ -8,6 +8,7 @@ use App\Models\Contract;
 use App\Services\Portal\InvestmentPortalService;
 use App\Services\Portal\KycService;
 use App\Services\Portal\SubscriptionService;
+use App\Services\Portal\WalletService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 
@@ -51,7 +52,7 @@ class ContractController extends Controller
         ]);
     }
 
-    public function show(Request $request, KycService $kyc, InvestmentPortalService $investments, SubscriptionService $subscriptions, string $contract): View
+    public function show(Request $request, KycService $kyc, InvestmentPortalService $investments, SubscriptionService $subscriptions, WalletService $wallet, string $contract): View
     {
         // Route-model binding scoped to publicVisible() — 404 for anything hidden.
         $model = Contract::publicVisible()->findOrFail($contract);
@@ -64,6 +65,7 @@ class ContractController extends Controller
             'investment' => $user !== null ? $investments->forContract($user, $model) : null,
             'subscribable' => $subscriptions->subscribable($model),
             'shareBounds' => $subscriptions->shareBounds($model),
+            'walletBalance' => $user !== null ? $wallet->balance($user) : 0.0,
         ]);
     }
 }

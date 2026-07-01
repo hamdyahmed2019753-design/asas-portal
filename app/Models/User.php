@@ -101,6 +101,14 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     }
 
     /**
+     * Whether the investor has provided a payout bank account.
+     */
+    public function hasBankAccount(): bool
+    {
+        return filled($this->bank_iban);
+    }
+
+    /**
      * Restrict admin panel access to users with the `admin` role.
      */
     public function canAccessPanel(Panel $panel): bool
@@ -135,6 +143,26 @@ class User extends Authenticatable implements FilamentUser, MustVerifyEmail
     public function contractInterests(): HasMany
     {
         return $this->hasMany(ContractInterest::class);
+    }
+
+    /**
+     * The investor's cash-wallet ledger entries.
+     *
+     * @return HasMany<WalletTransaction, $this>
+     */
+    public function walletTransactions(): HasMany
+    {
+        return $this->hasMany(WalletTransaction::class);
+    }
+
+    /**
+     * The investor's wallet withdrawal requests.
+     *
+     * @return HasMany<Withdrawal, $this>
+     */
+    public function withdrawals(): HasMany
+    {
+        return $this->hasMany(Withdrawal::class);
     }
 
     /**

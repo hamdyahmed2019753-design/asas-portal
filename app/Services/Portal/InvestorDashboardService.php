@@ -20,6 +20,7 @@ class InvestorDashboardService
         private readonly ContractInterestService $interests,
         private readonly AccountSecurityService $security,
         private readonly NextStepService $nextStep,
+        private readonly WalletService $wallet,
     ) {}
 
     /**
@@ -47,6 +48,7 @@ class InvestorDashboardService
         return [
             // The single highest-priority next action (pure — no extra query).
             'nextStep' => $this->nextStep->resolve($user, $investmentsCount > 0),
+            'walletBalance' => $this->wallet->balance($user),
             'onboardingComplete' => $user->hasCompletedOnboarding(),
             // KYC progress widget: shown once onboarding is done but not yet approved.
             'kyc' => $user->hasCompletedOnboarding() && ! $user->kycApproved()

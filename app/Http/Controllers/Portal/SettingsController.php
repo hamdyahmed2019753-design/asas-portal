@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Portal;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Portal\ChangePasswordRequest;
+use App\Http\Requests\Portal\UpdateBankAccountRequest;
 use App\Http\Requests\Portal\UpdateProfileRequest;
 use App\Services\Portal\AccountSecurityService;
 use Illuminate\Http\RedirectResponse;
@@ -22,6 +23,13 @@ class SettingsController extends Controller
         $service->updateProfile($request->user(), $request->validated());
 
         return back()->with('status', 'تم تحديث بياناتك بنجاح.');
+    }
+
+    public function updateBankAccount(UpdateBankAccountRequest $request, AccountSecurityService $service): RedirectResponse
+    {
+        $service->updateBankAccount($request->user(), $request->validated());
+
+        return back()->with('status', 'تم حفظ حسابك البنكي بنجاح.');
     }
 
     public function updatePassword(ChangePasswordRequest $request, AccountSecurityService $service): RedirectResponse
