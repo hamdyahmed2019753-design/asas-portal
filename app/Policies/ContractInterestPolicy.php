@@ -14,7 +14,7 @@ class ContractInterestPolicy
 
     public function view(User $user, ContractInterest $interest): bool
     {
-        return $user->hasRole('admin') || $interest->user_id === $user->id;
+        return $user->hasRole('admin') || (int) $interest->user_id === (int) $user->id;
     }
 
     /**

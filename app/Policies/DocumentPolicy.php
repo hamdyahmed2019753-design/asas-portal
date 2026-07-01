@@ -17,7 +17,7 @@ class DocumentPolicy
      */
     public function view(User $user, Document $document): bool
     {
-        return $user->id === $document->user_id || $user->hasRole('admin');
+        return (int) $user->id === (int) $document->user_id || $user->hasRole('admin');
     }
 
     public function download(User $user, Document $document): bool

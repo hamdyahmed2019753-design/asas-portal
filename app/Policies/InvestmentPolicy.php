@@ -15,7 +15,9 @@ class InvestmentPolicy
     public function view(User $user, Investment $investment): bool
     {
         // Admins (panel) or the investment's owner (portal) may view it.
-        return $user->hasRole('admin') || $investment->user_id === $user->id;
+        // Cast both ids: some MySQL/PDO configs return foreign keys as strings,
+        // which would break a strict === against the (int) auth id → false 403.
+        return $user->hasRole('admin') || (int) $investment->user_id === (int) $user->id;
     }
 
     public function create(User $user): bool

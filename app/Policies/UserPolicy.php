@@ -33,7 +33,7 @@ class UserPolicy
      */
     public function viewKycDocuments(User $user, User $model): bool
     {
-        return $user->id === $model->id || $user->hasRole('admin');
+        return (int) $user->id === (int) $model->id || $user->hasRole('admin');
     }
 
     /**
@@ -50,7 +50,7 @@ class UserPolicy
      */
     public function resubmitKyc(User $user, User $model): bool
     {
-        return $user->id === $model->id && $user->kyc_state === KycState::Rejected;
+        return (int) $user->id === (int) $model->id && $user->kyc_state === KycState::Rejected;
     }
 
     public function delete(User $user, User $model): bool
